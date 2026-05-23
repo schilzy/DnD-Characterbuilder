@@ -13452,62 +13452,62 @@
         // cx, cy = centre of the circle.  r = radius.
         function abilityBox(ability, score, cx, cy, r) {
           /* Official layout: outer rounded rect containing label + circle + mod box.
-       cy = top of the outer block (NOT circle centre — changed from original). */
-          r = r || 18;
-          var bw = cx - (cx - r * 1.6) + r * 1.6 * 2; // block width = r*3.2
-          var bx = cx - r * 1.6; // block left
-
-          /* Total block height: 12(label) + 3(gap) + r*2(circle) + 3(gap) + 15(mod box) */
-          var modH = 15;
-          var labelH = 12;
+       cy = top of the outer block.
+       Sized so 6 boxes + Inspiration + ProfBonus align with Saves+Skills column. */
+          r = r || 15;
+          var labelH = 10; /* ability name zone height */
+          var modH = 13; /* modifier box height */
+          /* blockH = labelH + 3 + r*2 + 3 + modH = 10+3+30+3+13 = 59pt */
           var blockH = labelH + 3 + r * 2 + 3 + modH;
+          var bw = r * 3.2; /* block width */
+          var bx = cx - bw / 2; /* block left edge */
 
-          /* 1. Outer rounded rect (full block, white fill, dark border) */
+          /* 1. Outer rounded rect */
           sf(C_PAGE);
           sd(C_DKBORD);
           lw(0.7);
-          drrect(bx, cy, bw, blockH, 3, "FD");
+          drrect(bx, cy, bw, blockH, 2, "FD");
 
-          /* 2. Ability name — top-centre of block */
-          var labelY = cy + labelH - 2; /* baseline of label text */
+          /* 2. Ability name — top-centre, small caps style */
+          var labelY = cy + labelH - 1.5;
           st(C_INK);
-          fnt(6.5, true);
+          fnt(6, true);
           doc.text(ability, cx, labelY, { align: "center" });
 
-          /* 3. Thin rule under label */
+          /* 3. Thin rule separating label from circle area */
           sd(C_BORDER);
-          lw(0.3);
-          dline(bx + 2, cy + labelH + 1, bx + bw - 2, cy + labelH + 1);
+          lw(0.25);
+          dline(bx + 2, cy + labelH + 0.5, bx + bw - 2, cy + labelH + 0.5);
 
-          /* 4. Circle for score — centred horizontally, below label */
-          var circleY = cy + labelH + 3 + r; /* circle centre y */
+          /* 4. Circle — centre sits below the label zone */
+          var circleY = cy + labelH + 3 + r;
           sf(C_PAGE);
           sd(C_DKBORD);
-          lw(0.7);
+          lw(0.6);
           dcircle(cx, circleY, r, "FD");
 
-          /* 5. Score inside circle */
+          /* 5. Score inside circle — font sized to fit r=15 */
           st(C_INK);
-          fnt(15, true);
-          doc.text(String(score), cx, circleY + 5.5, {
+          fnt(13, true);
+          doc.text(String(score), cx, circleY + 4.5, {
             align: "center",
             baseline: "alphabetic",
           });
 
-          /* 6. Modifier box — below circle, inside outer rect */
+          /* 6. Modifier box */
           var m = Math.floor((score - 10) / 2);
           var mStr = m >= 0 ? "+" + m : String(m);
-          var mby = cy + labelH + 3 + r * 2 + 3; /* top of mod box */
-          var mbw = r * 1.2,
+          var mby = cy + labelH + 3 + r * 2 + 3;
+          var mbw = r * 1.3,
             mbh = modH;
           var mbx = cx - mbw / 2;
           sf(C_FIELD);
           sd(C_DKBORD);
-          lw(0.5);
+          lw(0.4);
           drrect(mbx, mby, mbw, mbh, 2, "FD");
           st(C_INK);
-          fnt(9, true);
-          doc.text(mStr, cx, mby + mbh / 2 + 3.5, {
+          fnt(8.5, true);
+          doc.text(mStr, cx, mby + mbh / 2 + 3, {
             align: "center",
             baseline: "alphabetic",
           });
@@ -13833,11 +13833,12 @@
 
         /* ── COLUMN 1: ABILITY SCORES ───────────────────────────────── */
         var ABILS = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
-        var statR = 18; // circle radius (matches abilityBox default)
-        var statBlockH = 12 + 3 + statR * 2 + 3 + 15; // = 69pt per block
+        var statR = 15; // circle radius — sized so 6 blocks align with col2
+        /* blockH = 10(label)+3+30(circle)+3+13(mod) = 59pt */
+        var statBlockH = 10 + 3 + statR * 2 + 3 + 13;
         var statGap = 3; // gap between blocks
-        var statH = statBlockH + statGap; // = 72pt spacing
-        var statStartY = 44; // top of first block (just below header rule)
+        var statH = statBlockH + statGap; // = 62pt per slot
+        var statStartY = 44; // top of first block (just below header)
 
         ABILS.forEach(function (a, i) {
           var cx = C1X + C1W / 2;
@@ -13845,7 +13846,7 @@
           abilityBox(a, scores[a], cx, cy, statR);
         });
 
-        /* Bottom of ability score column */
+        /* Bottom of ability score column — should align with col2 saves+skills */
         var c1y = statStartY + ABILS.length * statH + 4;
 
         /* Inspiration field */
