@@ -7858,13 +7858,22 @@
    ═══════════════════════════════════════════════════════════ */
       const SOURCE_OPTIONS = [
         { code: "PHB", label: "Player's Handbook (2014)", defaultOn: true },
-        { code: "DMG", label: "Dungeon Master's Guide", defaultOn: true },
+        {
+          code: "DMG",
+          label: "Dungeon Master's Guide (2014)",
+          defaultOn: true,
+        },
         {
           code: "TCE",
           label: "Tasha's Cauldron of Everything",
           defaultOn: true,
         },
         { code: "XPHB", label: "Player's Handbook (2024)", defaultOn: false },
+        {
+          code: "XDMG",
+          label: "Dungeon Master's Guide (2024)",
+          defaultOn: false,
+        },
         {
           code: "XGE",
           label: "Xanathar's Guide to Everything",
@@ -7883,11 +7892,25 @@
           : ["PHB", "DMG", "TCE"];
       }
 
+      // 2024 ↔ 2014 edition pairs: selecting one implicitly allows the other
+      // because 5etools still tags many 2024-revised entries with the 2014 source code.
+      const _EDITION_PAIRS = {
+        XPHB: "PHB",
+        PHB: "XPHB",
+        XDMG: "DMG",
+        DMG: "XDMG",
+      };
+
       function isSourceAllowed(src) {
         const normalized = (src || "PHB").toUpperCase();
-        // Unknown / uncommon sources always pass through
+        // Unknown / uncommon sources (UA, homebrew…) always pass through
         if (!_KNOWN_SOURCES.has(normalized)) return true;
-        return getEffectiveSources().includes(normalized);
+        const active = getEffectiveSources();
+        if (active.includes(normalized)) return true;
+        // If the edition pair is selected, also allow this source
+        const pair = _EDITION_PAIRS[normalized];
+        if (pair && active.includes(pair)) return true;
+        return false;
       }
 
       function toggleSource(code) {
@@ -8012,6 +8035,7 @@
           })();
         }
         if (n === 3 && !allBackgrounds.length) initBackgrounds();
+        else if (n === 3 && allBackgrounds.length) renderBgGrid();
         if (n === 3 && ch.background) {
           (function () {
             const b = document.getElementById("bgSelBanner");
@@ -8102,7 +8126,7 @@
         grid.style.display = "grid";
         const filtered = allRaces
           .map((r, i) => ({ r, i }))
-          .filter(({ r }) => isSourceAllowed(r.source));
+          .filter(({ r }) => isSourceAllowed(r.source || "PHB"));
         grid.innerHTML = filtered
           .map(({ r, i }) => {
             const asi = raceASI(r);
@@ -8435,7 +8459,7 @@
         grid.style.display = "grid";
         const filtered = allClasses
           .map((c, i) => ({ c, i }))
-          .filter(({ c }) => isSourceAllowed(c.source));
+          .filter(({ c }) => isSourceAllowed(c.source || "PHB"));
         grid.innerHTML = filtered
           .map(({ c, i }) => {
             const selected = ch.class && ch.class.name === c.name;
@@ -8932,7 +8956,7 @@
         grid.style.display = "grid";
         const filtered = allBackgrounds
           .map((b, i) => ({ b, i }))
-          .filter(({ b }) => isSourceAllowed(b.source));
+          .filter(({ b }) => isSourceAllowed(b.source || "PHB"));
         grid.innerHTML = filtered
           .map(({ b, i }) => {
             const selected = ch.background && ch.background.name === b.name;
@@ -9226,6 +9250,35 @@
         const fixed = [];
         let choiceCount = 0;
         const choiceSources = [];
+
+        // ── 2024 Rules (XPHB active) ─────────────────────────────────────────
+        // PHB 2024 p.33: every character knows Common plus 2 standard languages
+        // chosen during character creation, regardless of species/background.
+        const using2024 = getEffectiveSources().includes("XPHB");
+        if (using2024) {
+          fixed.push({ name: "Common", source: "2024 Rules (Universal)" });
+          // Add class secret languages
+          const CLASS_LANG_2024 = {
+            Druid: { name: "Druidic", source: "Druid (Class Feature)" },
+            Rogue: { name: "Thieves' Cant", source: "Rogue (Class Feature)" },
+          };
+          const clsGrant = CLASS_LANG_2024[ch.class?.name || ""];
+          if (clsGrant) fixed.push(clsGrant);
+          // 2 free standard language choices
+          choiceCount = 2;
+          choiceSources.push("2024 Rules (2 standard language choices)");
+          // Dedup fixed list
+          const seenFix = new Set();
+          const deduped = fixed.filter((l) => {
+            const k = l.name.toLowerCase();
+            if (seenFix.has(k)) return false;
+            seenFix.add(k);
+            return true;
+          });
+          fixed.length = 0;
+          deduped.forEach((l) => fixed.push(l));
+          return { fixed, choiceCount, choiceSources };
+        }
 
         // ── Helper: parse a languageProficiencies array (old 5etools format) ──
         function parseLPArray(lpArr, sourceName) {
@@ -11375,6 +11428,85 @@
           extras: ["Thieves' Tools"],
         },
       };
+
+      // 2024 PHB starting equipment (PHB 2024 pp. class chapters)
+      // Format: { weapons, armor, extras, gold }
+      // gold = starting gold pieces (added to currency, not as an item)
+      const CLASS_STARTER_KITS_2024 = {
+        Barbarian: {
+          weapons: ["Greataxe", "Handaxe", "Handaxe", "Dagger"],
+          armor: [],
+          extras: ["Explorer's Pack"],
+          gold: 0,
+        },
+        Bard: {
+          weapons: ["Longsword", "Dagger"],
+          armor: ["Leather Armor"],
+          extras: ["Entertainer's Pack", "Lute"],
+          gold: 0,
+        },
+        Cleric: {
+          weapons: ["Mace", "Light Crossbow"],
+          armor: ["Chain Mail", "Shield"],
+          extras: ["Priest's Pack", "Holy Symbol"],
+          gold: 0,
+        },
+        Druid: {
+          weapons: ["Quarterstaff"],
+          armor: ["Leather Armor", "Shield"],
+          extras: ["Explorer's Pack", "Druidic Focus"],
+          gold: 0,
+        },
+        Fighter: {
+          weapons: ["Longsword", "Shield", "Light Crossbow", "Dagger"],
+          armor: ["Chain Mail"],
+          extras: ["Dungeoneer's Pack", "Quiver"],
+          gold: 0,
+        },
+        Monk: {
+          weapons: ["Shortsword", "Shortsword", "Dart"],
+          armor: [],
+          extras: ["Dungeoneer's Pack"],
+          gold: 0,
+        },
+        Paladin: {
+          weapons: ["Longsword", "Shield", "Javelin"],
+          armor: ["Chain Mail"],
+          extras: ["Priest's Pack", "Holy Symbol"],
+          gold: 0,
+        },
+        Ranger: {
+          weapons: ["Longbow", "Shortsword", "Shortsword"],
+          armor: ["Leather Armor"],
+          extras: ["Explorer's Pack", "Quiver"],
+          gold: 0,
+        },
+        Rogue: {
+          weapons: ["Rapier", "Shortbow", "Dagger", "Dagger"],
+          armor: ["Leather Armor"],
+          extras: ["Burglar's Pack", "Thieves' Tools"],
+          gold: 0,
+        },
+        Sorcerer: {
+          weapons: ["Dagger", "Dagger"],
+          armor: [],
+          extras: ["Arcane Focus", "Explorer's Pack"],
+          gold: 0,
+        },
+        Warlock: {
+          weapons: ["Dagger", "Dagger"],
+          armor: ["Leather Armor"],
+          extras: ["Arcane Focus", "Scholar's Pack"],
+          gold: 0,
+        },
+        Wizard: {
+          weapons: ["Quarterstaff", "Dagger"],
+          armor: [],
+          extras: ["Spellbook", "Arcane Focus", "Scholar's Pack"],
+          gold: 0,
+        },
+      };
+
       const BG_EXTRAS = {
         Acolyte: ["Holy Symbol", "Prayer Book"],
         Criminal: ["Crowbar", "Thieves' Tools"],
@@ -11386,6 +11518,39 @@
         Folk_Hero: ["Artisan's Tools"],
       };
 
+      // 2024 background starting equipment (PHB 2024)
+      const BG_EXTRAS_2024 = {
+        Acolyte: ["Holy Symbol", "Prayer Book", "Incense", "Vestments"],
+        Artisan: ["Artisan's Tools", "Abacus"],
+        Charlatan: ["Disguise Kit", "Fine Clothes"],
+        Criminal: ["Crowbar", "Thieves' Tools", "Dark Common Clothes"],
+        Entertainer: ["Musical Instrument", "Costume", "Mirror"],
+        Farmer: ["Shovel", "Iron Pot", "Common Clothes"],
+        Guard: ["Spear", "Light Crossbow", "Quiver", "Manacles"],
+        Hermit: ["Scroll Case", "Blanket", "Healer's Kit"],
+        Merchant: ["Letter of Introduction", "Traveler's Clothes"],
+        Noble: ["Signet Ring", "Fine Clothes", "Scroll of Pedigree"],
+        Sage: ["Ink (1 ounce bottle)", "Quill", "Letter from Colleague"],
+        Sailor: ["Silk Rope (50 feet)", "Lucky Charm"],
+        Scribe: ["Ink (1 ounce bottle)", "Quill", "Parchment"],
+        Soldier: ["Rank Insignia", "Trophy", "Common Clothes"],
+        Wayfarer: ["Bedroll", "Fishing Tackle", "Dagger"],
+      };
+
+      function _getActiveKit() {
+        const using2024 = getEffectiveSources().includes("XPHB");
+        const kits = using2024 ? CLASS_STARTER_KITS_2024 : CLASS_STARTER_KITS;
+        return ch.class ? kits[ch.class.name] || null : null;
+      }
+
+      function _getActiveBgExtras() {
+        const using2024 = getEffectiveSources().includes("XPHB");
+        const extras = using2024 ? BG_EXTRAS_2024 : BG_EXTRAS;
+        if (!ch.background) return null;
+        const bgKey = ch.background.name.replace(/\s+/g, "_");
+        return extras[bgKey] || extras[ch.background.name] || null;
+      }
+
       function updateAutoEquipBanner() {
         const banner = document.getElementById("autoEquipBanner");
         const desc = document.getElementById("autoEquipDesc");
@@ -11394,12 +11559,15 @@
           banner.style.display = "none";
           return;
         }
+        const using2024 = getEffectiveSources().includes("XPHB");
+        const edition = using2024 ? " (2024 rules)" : "";
         const parts = [];
-        if (ch.class && CLASS_STARTER_KITS[ch.class.name]) {
-          const kit = CLASS_STARTER_KITS[ch.class.name];
+        const kit = _getActiveKit();
+        if (kit) {
           parts.push(
             ch.class.name +
-              " starter: " +
+              edition +
+              ": " +
               [...kit.weapons, ...kit.armor, ...kit.extras]
                 .slice(0, 4)
                 .join(", ") +
@@ -11408,13 +11576,11 @@
                 : ""),
           );
         }
-        if (ch.background) {
-          const bgKey = ch.background.name.replace(/s+/g, "_");
-          const extras = BG_EXTRAS[bgKey] || BG_EXTRAS[ch.background.name];
-          if (extras)
-            parts.push(
-              ch.background.name + ": " + extras.slice(0, 2).join(", "),
-            );
+        const bgExtras = _getActiveBgExtras();
+        if (bgExtras) {
+          parts.push(
+            ch.background.name + ": " + bgExtras.slice(0, 2).join(", "),
+          );
         }
         if (parts.length) {
           banner.style.display = "block";
@@ -11428,8 +11594,8 @@
           return;
         }
         const toAdd = [];
-        if (ch.class && CLASS_STARTER_KITS[ch.class.name]) {
-          const kit = CLASS_STARTER_KITS[ch.class.name];
+        const kit = _getActiveKit();
+        if (kit) {
           [...kit.weapons, ...kit.armor, ...kit.extras].forEach(
             function (name) {
               const item = allItems.find(function (i) {
@@ -11447,23 +11613,28 @@
               else toAdd.push({ name: name, category: "Gear", cost: "" });
             },
           );
+          // 2024 kits may include a starting gold amount
+          if (kit.gold && kit.gold > 0) {
+            ch.currency = ch.currency || { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 };
+            ch.currency.gp = (ch.currency.gp || 0) + kit.gold;
+            const gpEl = document.getElementById("currGP");
+            if (gpEl) gpEl.value = ch.currency.gp;
+          }
         }
-        if (ch.background) {
-          const bgKey = ch.background.name.replace(/s+/g, "_");
-          const extras = BG_EXTRAS[bgKey] || BG_EXTRAS[ch.background.name];
-          if (extras)
-            extras.forEach(function (name) {
-              const item = allItems.find(function (i) {
-                return i.name === name;
-              });
-              if (item)
-                toAdd.push({
-                  name: item.name,
-                  category: itemCategory(item),
-                  cost: itemCost(item),
-                });
-              else toAdd.push({ name: name, category: "Gear", cost: "" });
+        const bgExtras = _getActiveBgExtras();
+        if (bgExtras) {
+          bgExtras.forEach(function (name) {
+            const item = allItems.find(function (i) {
+              return i.name === name;
             });
+            if (item)
+              toAdd.push({
+                name: item.name,
+                category: itemCategory(item),
+                cost: itemCost(item),
+              });
+            else toAdd.push({ name: name, category: "Gear", cost: "" });
+          });
         }
         const existing = new Set(
           ch.equipment.map(function (e) {
