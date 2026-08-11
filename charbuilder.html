@@ -7471,7 +7471,7 @@
         // Warlock pact magic / manual slot overrides
         maxSlotOverrides: {}, // {1:N, 2:N, ...} — user-set max for each level
         // Source filter
-        sources: ["PHB", "DMG", "TCE"],
+        sources: ["XPHB", "XDMG"],
         // Theme
         theme: "dark", // 'dark' | 'light'
         // Concentration tracking
@@ -7857,22 +7857,22 @@
    SOURCE FILTER
    ═══════════════════════════════════════════════════════════ */
       const SOURCE_OPTIONS = [
-        { code: "PHB", label: "Player's Handbook (2014)", defaultOn: true },
+        { code: "PHB", label: "Player's Handbook (2014)", defaultOn: false },
         {
           code: "DMG",
           label: "Dungeon Master's Guide (2014)",
-          defaultOn: true,
+          defaultOn: false,
         },
         {
           code: "TCE",
           label: "Tasha's Cauldron of Everything",
-          defaultOn: true,
+          defaultOn: false,
         },
-        { code: "XPHB", label: "Player's Handbook (2024)", defaultOn: false },
+        { code: "XPHB", label: "Player's Handbook (2024)", defaultOn: true },
         {
           code: "XDMG",
           label: "Dungeon Master's Guide (2024)",
-          defaultOn: false,
+          defaultOn: true,
         },
         {
           code: "XGE",
@@ -7889,7 +7889,7 @@
       function getEffectiveSources() {
         return ch.sources && ch.sources.length
           ? ch.sources.map((s) => s.toUpperCase())
-          : ["PHB", "DMG", "TCE"];
+          : ["XPHB", "XDMG"];
       }
 
       // 2024 ↔ 2014 edition pairs: selecting one implicitly allows the other
@@ -7914,7 +7914,7 @@
       }
 
       function toggleSource(code) {
-        if (!ch.sources) ch.sources = ["PHB", "DMG", "TCE"];
+        if (!ch.sources) ch.sources = ["XPHB", "XDMG"];
         const idx = ch.sources.indexOf(code);
         if (idx >= 0) ch.sources.splice(idx, 1);
         else ch.sources.push(code);
@@ -7927,7 +7927,7 @@
       }
 
       function resetSources() {
-        ch.sources = ["PHB", "DMG", "TCE"];
+        ch.sources = ["XPHB", "XDMG"];
         persistState();
         renderSourceSelector();
         allRaces = [];
@@ -8124,9 +8124,31 @@
       function renderRaceGrid() {
         const grid = document.getElementById("raceGrid");
         grid.style.display = "grid";
-        const filtered = allRaces
+        const active = getEffectiveSources();
+
+        // Pass 1: source filter (includes edition-pair passthrough)
+        let filtered = allRaces
           .map((r, i) => ({ r, i }))
           .filter(({ r }) => isSourceAllowed(r.source || "PHB"));
+
+        // Pass 2: deduplicate by race name, preferring directly-selected sources
+        // over those that only pass because of the edition-pair rule.
+        // e.g. XPHB active → keep "Dwarf (XPHB)", drop "Dwarf (PHB)".
+        const seenNames = new Map(); // name → {entry, score}
+        const directScore = (src) =>
+          active.includes((src || "PHB").toUpperCase()) ? 0 : 1;
+        filtered.forEach((entry) => {
+          const key = entry.r.name.toLowerCase();
+          const score = directScore(entry.r.source);
+          if (!seenNames.has(key) || score < seenNames.get(key).score) {
+            seenNames.set(key, { entry, score });
+          }
+        });
+        filtered = Array.from(seenNames.values())
+          .map((v) => v.entry)
+          .sort((a, b) => a.r.name.localeCompare(b.r.name));
+
+        grid.innerHTML = filtered;
         grid.innerHTML = filtered
           .map(({ r, i }) => {
             const asi = raceASI(r);
@@ -8457,9 +8479,28 @@
       function renderClassGrid() {
         const grid = document.getElementById("classGrid");
         grid.style.display = "grid";
-        const filtered = allClasses
+        const active = getEffectiveSources();
+
+        let filtered = allClasses
           .map((c, i) => ({ c, i }))
           .filter(({ c }) => isSourceAllowed(c.source || "PHB"));
+
+        // Dedup by name, prefer directly-selected source over edition pair
+        const seenCls = new Map();
+        const directScore = (src) =>
+          active.includes((src || "PHB").toUpperCase()) ? 0 : 1;
+        filtered.forEach((entry) => {
+          const key = entry.c.name.toLowerCase();
+          const score = directScore(entry.c.source);
+          if (!seenCls.has(key) || score < seenCls.get(key).score) {
+            seenCls.set(key, { entry, score });
+          }
+        });
+        filtered = Array.from(seenCls.values())
+          .map((v) => v.entry)
+          .sort((a, b) => a.c.name.localeCompare(b.c.name));
+
+        grid.innerHTML = filtered;
         grid.innerHTML = filtered
           .map(({ c, i }) => {
             const selected = ch.class && ch.class.name === c.name;
@@ -8954,9 +8995,28 @@
       function renderBgGrid() {
         const grid = document.getElementById("bgGrid");
         grid.style.display = "grid";
-        const filtered = allBackgrounds
+        const active = getEffectiveSources();
+
+        let filtered = allBackgrounds
           .map((b, i) => ({ b, i }))
           .filter(({ b }) => isSourceAllowed(b.source || "PHB"));
+
+        // Dedup by name, prefer directly-selected source over edition pair
+        const seenBg = new Map();
+        const directScore = (src) =>
+          active.includes((src || "PHB").toUpperCase()) ? 0 : 1;
+        filtered.forEach((entry) => {
+          const key = entry.b.name.toLowerCase();
+          const score = directScore(entry.b.source);
+          if (!seenBg.has(key) || score < seenBg.get(key).score) {
+            seenBg.set(key, { entry, score });
+          }
+        });
+        filtered = Array.from(seenBg.values())
+          .map((v) => v.entry)
+          .sort((a, b) => a.b.name.localeCompare(b.b.name));
+
+        grid.innerHTML = filtered;
         grid.innerHTML = filtered
           .map(({ b, i }) => {
             const selected = ch.background && ch.background.name === b.name;
@@ -10738,20 +10798,66 @@
           allSpells = await loadSpells();
         }
 
-        // Filter to class spells
+        // Filter to class spells using multiple 5etools formats
         const className = ch.class.name.toLowerCase();
         filteredSpells = allSpells.filter((s) => {
           if (!s.classes) return false;
           const cls = s.classes;
-          if (cls.fromClassList)
-            return cls.fromClassList.some(
-              (c) => c.name.toLowerCase() === className,
-            );
-          if (Array.isArray(cls))
-            return cls.some((c) => (c.name || c).toLowerCase() === className);
+
+          // Format 1: fromClassList array (most common in 5etools)
+          if (cls.fromClassList && Array.isArray(cls.fromClassList)) {
+            if (
+              cls.fromClassList.some(
+                (c) => (c.name || "").toLowerCase() === className,
+              )
+            )
+              return true;
+          }
+
+          // Format 2: fromClassListVariant (subclass-expanded spells)
+          if (
+            cls.fromClassListVariant &&
+            Array.isArray(cls.fromClassListVariant)
+          ) {
+            if (
+              cls.fromClassListVariant.some(
+                (c) => (c.name || "").toLowerCase() === className,
+              )
+            )
+              return true;
+          }
+
+          // Format 3: flat array of strings or {name} objects
+          if (Array.isArray(cls)) {
+            if (
+              cls.some((c) => ((c.name || c) + "").toLowerCase() === className)
+            )
+              return true;
+          }
+
+          // Format 4: object with class name keys
+          if (typeof cls === "object" && !Array.isArray(cls)) {
+            if (Object.keys(cls).some((k) => k.toLowerCase() === className))
+              return true;
+          }
+
           return false;
         });
-        if (!filteredSpells.length) filteredSpells = allSpells; // fallback: show all
+
+        // If no class-specific spells found, show a clear notice rather than dumping all spells
+        const noMatchEl = document.getElementById("noSpellsNotice");
+        if (!filteredSpells.length) {
+          document.getElementById("spellBrowser").style.display = "none";
+          if (noMatchEl) {
+            noMatchEl.style.display = "block";
+            noMatchEl.innerHTML =
+              "<strong>" +
+              escHtml(ch.class.name) +
+              "</strong> spell data was not found in your loaded sources. " +
+              "Try enabling PHB or XPHB in the source selector on the Identity page, or proceed without spells.";
+          }
+          return;
+        }
 
         // Set notice
         const maxCantrips =
@@ -10788,6 +10894,16 @@
           .join("  ");
         const cantripAtMax = curCantrips >= maxCantrips;
         const knownAtMax = maxKnown < 99 && curKnown >= maxKnown;
+
+        // Prepared-list casters: show prepared cap
+        const maxPrep = maxPreparedSpells(
+          ch.class.name,
+          ch.level,
+          ch.finalScores,
+        );
+        const prepAtMax = maxPrep !== null && curKnown >= maxPrep;
+        const maxCastLevel = maxSpellLevelForClass(ch.class.name, ch.level);
+
         document.getElementById("spellNotice").innerHTML =
           '<div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center">' +
           "<strong style=\"font-family:'Cinzel',serif\">" +
@@ -10795,6 +10911,10 @@
           " \u00b7 Level " +
           ch.level +
           "</strong>" +
+          '<span style="font-size:0.72rem;color:var(--text-muted)">Max spell level: <strong style="color:var(--text-primary)">' +
+          maxCastLevel +
+          getOrdSuffix(maxCastLevel) +
+          "</strong></span>" +
           '<span style="display:inline-flex;align-items:center;gap:0.3rem;background:' +
           (cantripAtMax ? "rgba(224,168,48,0.18)" : "var(--bg-elevated)") +
           ";border:1.5px solid " +
@@ -10824,7 +10944,24 @@
               "/" +
               maxKnown +
               "</strong></span>"
-            : '<span style="font-size:0.75rem;color:var(--text-muted)">Spells: prepared from list each day</span>') +
+            : maxPrep !== null
+              ? '<span style="display:inline-flex;align-items:center;gap:0.3rem;background:' +
+                (prepAtMax ? "rgba(160,140,255,0.15)" : "var(--bg-elevated)") +
+                ";border:1.5px solid " +
+                (prepAtMax
+                  ? "var(--interactive-primary)"
+                  : "var(--border-default)") +
+                ";border-radius:4px;padding:0.2rem 0.55rem;font-family:'Cinzel',serif;font-size:0.78rem\">" +
+                '\u2756 Prepared <strong style="color:' +
+                (prepAtMax
+                  ? "var(--interactive-primary)"
+                  : "var(--text-primary)") +
+                '">' +
+                curKnown +
+                "/" +
+                maxPrep +
+                "</strong></span>"
+              : '<span style="font-size:0.75rem;color:var(--text-muted)">Spells: prepared from list each day</span>') +
           (slotSummary
             ? '<span style="font-size:0.72rem;color:var(--text-muted)">Slots: ' +
               slotSummary +
@@ -11026,6 +11163,48 @@
         return `${t.number} ${t.unit}`;
       }
 
+      // Returns the highest spell level a character can cast given class + level
+      function maxSpellLevelForClass(className, charLevel) {
+        const HALF_CASTERS = ["Paladin", "Ranger", "Artificer"];
+        const lvl = HALF_CASTERS.includes(className)
+          ? Math.floor(charLevel / 2)
+          : charLevel;
+        if (lvl >= 17) return 9;
+        if (lvl >= 15) return 8;
+        if (lvl >= 13) return 7;
+        if (lvl >= 11) return 6;
+        if (lvl >= 9) return 5;
+        if (lvl >= 7) return 4;
+        if (lvl >= 5) return 3;
+        if (lvl >= 3) return 2;
+        if (lvl >= 1) return 1;
+        return 0;
+      }
+
+      function getOrdSuffix(n) {
+        if (n === 1) return "st";
+        if (n === 2) return "nd";
+        if (n === 3) return "rd";
+        return "th";
+      }
+
+      // Returns max prepared spells for prepared-list casters, null for known-spell classes
+      function maxPreparedSpells(className, charLevel, scores) {
+        const abilMap = {
+          Wizard: "INT",
+          Cleric: "WIS",
+          Druid: "WIS",
+          Paladin: "CHA",
+          Artificer: "INT",
+        };
+        const abil = abilMap[className];
+        if (!abil) return null; // known-spell caster — no prep cap
+        const mod = abilityMod((scores || ch.finalScores || {})[abil] || 10);
+        if (className === "Paladin" || className === "Artificer")
+          return Math.max(1, Math.floor(charLevel / 2) + mod);
+        return Math.max(1, charLevel + mod);
+      }
+
       function toggleSpell(name) {
         const spell =
           filteredSpells.find((s) => s.name === name) ||
@@ -11035,56 +11214,107 @@
         if (idx >= 0) {
           ch.spells.splice(idx, 1);
         } else {
+          const className = (ch.class && ch.class.name) || "";
+          const charLevel = ch.level || 1;
           const isCantrip = spell.level === 0;
+
           if (isCantrip) {
-            const maxC =
-              {
-                Sorcerer: 4,
-                Wizard: 3,
-                Bard: 2,
-                Cleric: 3,
-                Druid: 2,
-                Ranger: 0,
-                Paladin: 0,
-                Warlock: 2,
-                Artificer: 2,
-              }[ch.class && ch.class.name] || 2;
-            if (
-              ch.spells.filter(function (s) {
-                return s.level === 0;
-              }).length >= maxC
-            ) {
+            const CANTRIP_LIMITS = {
+              Sorcerer: 4,
+              Wizard: 3,
+              Bard: 2,
+              Cleric: 3,
+              Druid: 2,
+              Ranger: 0,
+              Paladin: 0,
+              Warlock: 2,
+              Artificer: 2,
+            };
+            const maxC = CANTRIP_LIMITS[className] ?? 2;
+            if (ch.spells.filter((s) => s.level === 0).length >= maxC) {
               showToast(
                 "Cantrip limit reached (" +
                   maxC +
                   " max for " +
-                  ((ch.class && ch.class.name) || "this class") +
+                  (className || "this class") +
                   ")!",
                 false,
               );
               return;
             }
           } else {
+            // Block spells above the character's castable level
+            const maxLevel = maxSpellLevelForClass(className, charLevel);
+            if (spell.level > maxLevel) {
+              showToast(
+                "Cannot prepare " +
+                  spell.level +
+                  getOrdSuffix(spell.level) +
+                  "-level spells yet. " +
+                  (className || "Your class") +
+                  " level " +
+                  charLevel +
+                  " can prepare up to " +
+                  maxLevel +
+                  getOrdSuffix(maxLevel) +
+                  "-level spells.",
+                false,
+              );
+              return;
+            }
+            // Known-spell classes: hard cap on total spells known
             const KL = {
               Bard: [0, 4, 5, 6, 7, 8, 9, 10, 11, 12],
               Ranger: [0, 0, 2, 3, 3, 4, 4, 5, 5, 6],
               Sorcerer: [0, 2, 3, 4, 5, 6, 7, 8, 9, 10],
               Warlock: [0, 2, 3, 4, 5, 6, 7, 8, 9, 10],
             };
-            const lims = KL[ch.class && ch.class.name];
-            if (lims) {
-              const mx = lims[ch.level] || 99;
-              if (
-                ch.spells.filter(function (s) {
-                  return s.level > 0;
-                }).length >= mx
-              ) {
+            if (KL[className]) {
+              const mx = KL[className][charLevel] || 99;
+              if (ch.spells.filter((s) => s.level > 0).length >= mx) {
                 showToast(
                   "Spell limit reached (" +
                     mx +
                     " spells known at level " +
-                    ch.level +
+                    charLevel +
                     ")!",
+                  false,
+                );
+                return;
+              }
+            }
+            // Prepared-list classes: cap on total prepared
+            const maxPrep = maxPreparedSpells(
+              className,
+              charLevel,
+              ch.finalScores,
+            );
+            if (maxPrep !== null) {
+              const curPrep = ch.spells.filter((s) => s.level > 0).length;
+              if (curPrep >= maxPrep) {
+                const abilLabel =
+                  {
+                    Wizard: "INT",
+                    Cleric: "WIS",
+                    Druid: "WIS",
+                    Paladin: "CHA",
+                    Artificer: "INT",
+                  }[className] || "WIS";
+                const modVal = fmtMod(
+                  abilityMod((ch.finalScores || {})[abilLabel] || 10),
+                );
+                showToast(
+                  "Prepared spell limit reached (" +
+                    maxPrep +
+                    " for " +
+                    className +
+                    " " +
+                    charLevel +
+                    " with " +
+                    abilLabel +
+                    " " +
+                    modVal +
+                    ").",
                   false,
                 );
                 return;
@@ -13305,6 +13535,33 @@
             catEl.textContent = g.category;
             row.appendChild(catEl);
           }
+
+          // ℹ Details button — opens the existing item detail modal
+          const infoBtn = document.createElement("button");
+          infoBtn.title = "View details for " + g.name;
+          infoBtn.textContent = "ℹ";
+          infoBtn.style.cssText = [
+            "background:none",
+            "border:1px solid var(--border-default)",
+            "border-radius:3px",
+            "color:var(--text-muted)",
+            "cursor:pointer",
+            "font-size:0.72rem",
+            "line-height:1",
+            "padding:1px 5px",
+            "flex-shrink:0",
+            "transition:border-color 0.15s,color 0.15s",
+          ].join(";");
+          infoBtn.onmouseenter = () => {
+            infoBtn.style.borderColor = "var(--accent-primary)";
+            infoBtn.style.color = "var(--accent-primary)";
+          };
+          infoBtn.onmouseleave = () => {
+            infoBtn.style.borderColor = "var(--border-default)";
+            infoBtn.style.color = "var(--text-muted)";
+          };
+          infoBtn.onclick = () => showInventoryDetail(g.name);
+          row.appendChild(infoBtn);
 
           // Remove one button
           const rmBtn = document.createElement("button");
@@ -16926,6 +17183,33 @@
       /* ═══════════════════════════════════════════════════════════
    SHEET EQUIPMENT — add items from the inventory tab
    ═══════════════════════════════════════════════════════════ */
+
+      /* ── Inventory item detail (sheet Inventory tab) ── */
+      async function showInventoryDetail(name) {
+        // Lazy-load items if needed
+        if (!allItems || !allItems.length) {
+          showToast("Loading item data…");
+          allItems = await loadItems();
+        }
+        const item = allItems.find((i) => i.name === name);
+        if (!item) {
+          showToast(
+            'No data found for "' + name + '" — it may be a custom item.',
+            false,
+          );
+          return;
+        }
+        // Build detail content using showEquipDetail which populates equipDetailContent
+        showEquipDetail(name);
+        // On the sheet the builder panel is hidden, so mirror into the spell modal
+        const content = document.getElementById("equipDetailContent");
+        const modal = document.getElementById("sheetSpellModal");
+        const modalContent = document.getElementById("sheetSpellModalContent");
+        if (modal && modalContent && content && content.innerHTML) {
+          modalContent.innerHTML = content.innerHTML;
+          modal.classList.add("open");
+        }
+      }
 
       async function filterSheetEquip(query) {
         const results = document.getElementById("sheetEquipResults");
