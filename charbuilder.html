@@ -12,8 +12,11 @@
     />
     <style>
       /* ═══════════════════════════════════════════════════════════
-         DESIGN DIRECTION: Dark Arcane Void / Obsidian Grimoire
-         Deep space blacks, arcane violet accents, cold gold runes
+         DESIGN DIRECTION: Gilded Ledger
+         Parchment & leather classic character sheet, styled with
+         the clean card-driven structure of a modern digital tool.
+         Brick-red for action, brass-gold for ornament, verdigris
+         teal for secondary interaction.
          ═══════════════════════════════════════════════════════════ */
       /* ═══════════════════════════════════════════════════════════════
          DESIGN TOKENS — Semantic CSS custom properties
@@ -22,7 +25,9 @@
            --bg-*      background surfaces (layered: base < raised < elevated)
            --border-*  border colours (default / subtle / strong)
            --text-*    text colours (primary / secondary / muted / on-accent)
-           --accent-*  brand / interactive accent colours
+           --accent-*  brass-gold ornament (borders, headers, dividers)
+           --interactive-* teal secondary interaction (links, tags, active)
+           --brand-*   brick-red primary action (buttons, HP/damage, active state)
            --status-*  semantic status (success / warning / danger / info)
            --ui-*      component-specific utilities
 
@@ -30,62 +35,73 @@
          Contrast ratios annotated inline.
          ═══════════════════════════════════════════════════════════════ */
 
-      /* ── DARK THEME (default) ─────────────────────────────────────── */
+      /* ── DARK THEME (deep leather) ────────────────────────────────── */
       :root,
       [data-theme="dark"] {
         color-scheme: dark;
 
-        /* Backgrounds — layered surface system */
-        --bg-base: #0f0d16; /* page background */
-        --bg-raised: #1a1726; /* cards, panels */
-        --bg-elevated: #232038; /* inputs, hover states */
-        --bg-overlay: #2e2a47; /* modals, tooltips */
+        /* Backgrounds — tooled-leather surface system */
+        --bg-base: #1c130d; /* page background */
+        --bg-raised: #2b1d14; /* cards, panels */
+        --bg-elevated: #3a2818; /* inputs, hover states */
+        --bg-overlay: #4a3220; /* modals, tooltips */
 
         /* Borders */
-        --border-subtle: rgba(255, 255, 255, 0.07);
-        --border-default: rgba(255, 255, 255, 0.14);
-        --border-strong: rgba(255, 255, 255, 0.28);
+        --border-subtle: rgba(242, 232, 213, 0.08);
+        --border-default: rgba(242, 232, 213, 0.16);
+        --border-strong: rgba(242, 232, 213, 0.3);
 
-        /* Text — all measured against --bg-raised (#1a1726)
-           --text-primary  : #f0ecff  contrast ~13:1 ✓
-           --text-secondary: #c8c0e0  contrast  ~7:1 ✓
-           --text-muted    : #9088aa  contrast  ~4.6:1 ✓ (WCAG AA)
-           --text-disabled : #5a5470  for truly disabled only, not body copy */
-        --text-primary: #f0ecff;
-        --text-secondary: #c8c0e0;
-        --text-muted: #9088aa;
-        --text-disabled: #5a5470;
+        /* Text — parchment ink, measured against --bg-raised (#2b1d14)
+           --text-primary  : #f2e8d5  contrast ~13.4:1 ✓
+           --text-secondary: #d9c8a8  contrast  ~9.6:1 ✓
+           --text-muted    : #ab9c81  contrast  ~4.9:1 ✓ (WCAG AA)
+           --text-disabled : #6b5f4c  for truly disabled only, not body copy */
+        --text-primary: #f2e8d5;
+        --text-secondary: #d9c8a8;
+        --text-muted: #ab9c81;
+        --text-disabled: #6b5f4c;
         --text-on-accent: #ffffff;
 
-        /* Accent — gold brand colour
-           --accent-primary  : #e0a830  on bg-raised → 5.8:1 ✓
-           --accent-secondary: #c48e20  on bg-raised → 4.5:1 ✓ (AA border)
-           --accent-subtle   : rgba of accent for bg tints */
-        --accent-primary: #e0a830;
-        --accent-secondary: #c48e20;
-        --accent-subtle: rgba(224, 168, 48, 0.12);
-        --accent-glow: rgba(224, 168, 48, 0.25);
+        /* Accent — brass-gold ornament (borders, headers, dividers)
+           --accent-primary  : #c9a04a  on bg-raised → 6.7:1 ✓
+           --accent-secondary: #a8802c  on bg-raised → 4.5:1 ✓ (AA border) */
+        --accent-primary: #c9a04a;
+        --accent-secondary: #a8802c;
+        --accent-subtle: rgba(168, 128, 44, 0.15);
+        --accent-glow: rgba(201, 160, 74, 0.28);
 
-        /* Interactive — purple/violet for links & active states
-           --interactive-primary  : #a08cff  on bg-raised → 5.2:1 ✓
-           --interactive-secondary: #7c6cd4  (less prominent) */
-        --interactive-primary: #a08cff;
-        --interactive-secondary: #7c6cd4;
-        --interactive-subtle: rgba(160, 140, 255, 0.12);
+        /* Interactive — verdigris teal for links, tags & secondary active states
+           --interactive-primary  : #4fa89b  on bg-raised → 5.8:1 ✓
+           --interactive-secondary: #2f6b63  (less prominent) */
+        --interactive-primary: #4fa89b;
+        --interactive-secondary: #2f6b63;
+        --interactive-subtle: rgba(63, 138, 127, 0.15);
+
+        /* Brand — brick-red primary action colour (buttons, HP/damage)
+           --brand-primary: #c2503a  on bg-raised → 3.5:1 (large/UI text ✓)
+           --brand-hover  : #d9553a  brighter for hover feedback
+           White text on --brand-primary fill → 6.3:1 ✓ */
+        --brand-primary: #c2503a;
+        --brand-hover: #d9553a;
+        --brand-subtle: rgba(194, 80, 58, 0.16);
 
         /* Status colours (all meet 3:1 on bg-raised for UI use) */
-        --status-success: #4ade80; /* green  — 4.8:1 on bg-raised ✓ */
-        --status-warning: #fbbf24; /* amber  — 5.5:1 on bg-raised ✓ */
-        --status-danger: #f87171; /* red    — 4.5:1 on bg-raised ✓ */
-        --status-info: #60a5fa; /* blue   — 4.7:1 on bg-raised ✓ */
+        --status-success: #7fb06c; /* sage green — 5.7:1 on bg-raised ✓ */
+        --status-success-subtle: rgba(127, 176, 108, 0.16);
+        --status-warning: #d9a441; /* amber      — 5.3:1 on bg-raised ✓ */
+        --status-warning-subtle: rgba(217, 164, 65, 0.16);
+        --status-danger: #e0654a; /* brick-red  — 4.8:1 on bg-raised ✓ */
+        --status-info: #6fa3b3; /* teal-slate — 4.9:1 on bg-raised ✓ */
+        --status-info-subtle: rgba(111, 163, 179, 0.16);
 
         /* Shadows */
         --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
         --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6);
         --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.7);
 
-        /* Legacy aliases — keeps existing CSS working without a full rewrite.
-           These will be replaced token-by-token in Step 8. */
+        /* Legacy aliases — keeps existing CSS/JS-generated markup working
+           without a full rewrite. Re-pointed to the new palette so every
+           dynamically-built inline style picks up the redesign for free. */
         --ink: var(--text-primary);
         --parchment: var(--bg-base);
         --parchment2: var(--bg-raised);
@@ -94,9 +110,9 @@
         --leather2: var(--bg-base);
         --gold: var(--accent-secondary);
         --gold2: var(--accent-primary);
-        --gold-glow: #f5c842;
-        --crimson: var(--interactive-secondary);
-        --crimson2: var(--interactive-primary);
+        --gold-glow: #e0bc6a;
+        --crimson: var(--brand-primary);
+        --crimson2: var(--brand-hover);
         --shadow: rgba(0, 0, 0, 0.7);
         --fade: var(--interactive-subtle);
         --class-col: var(--bg-raised);
@@ -107,55 +123,64 @@
         --accent2: var(--interactive-primary);
       }
 
-      /* ── LIGHT THEME ──────────────────────────────────────────────── */
+      /* ── LIGHT THEME (sunlit parchment) ───────────────────────────── */
       [data-theme="light"] {
         color-scheme: light;
 
         /* Backgrounds
-           Warm off-white — easier on eyes than pure white */
-        --bg-base: #f7f4ef;
-        --bg-raised: #ffffff;
-        --bg-elevated: #f0ebe3;
-        --bg-overlay: #e8e2d8;
+           Warm parchment cream — a page, not a screen */
+        --bg-base: #f2e8d5;
+        --bg-raised: #fbf6ea;
+        --bg-elevated: #efe4cd;
+        --bg-overlay: #e8dcc0;
 
         /* Borders */
-        --border-subtle: rgba(0, 0, 0, 0.07);
-        --border-default: rgba(0, 0, 0, 0.15);
-        --border-strong: rgba(0, 0, 0, 0.3);
+        --border-subtle: rgba(36, 28, 20, 0.08);
+        --border-default: rgba(36, 28, 20, 0.16);
+        --border-strong: rgba(36, 28, 20, 0.3);
 
-        /* Text — measured against --bg-raised (#ffffff)
-           --text-primary  : #1a1520  contrast ~17:1 ✓
-           --text-secondary: #3d3650  contrast ~10:1 ✓
-           --text-muted    : #6b6080  contrast  ~5.1:1 ✓ */
-        --text-primary: #1a1520;
-        --text-secondary: #3d3650;
-        --text-muted: #6b6080;
-        --text-disabled: #a099b0;
+        /* Text — ink, measured against --bg-raised (#fbf6ea)
+           --text-primary  : #241c14  contrast ~15.6:1 ✓
+           --text-secondary: #4a3d2c  contrast  ~9.8:1 ✓
+           --text-muted    : #6b5f4c  contrast  ~5.8:1 ✓ */
+        --text-primary: #241c14;
+        --text-secondary: #4a3d2c;
+        --text-muted: #6b5f4c;
+        --text-disabled: #a89a7d;
         --text-on-accent: #ffffff;
 
-        /* Accent — deeper gold for light backgrounds
-           --accent-primary  : #7a5200  on white → 8.2:1 ✓
-           --accent-secondary: #5c3d00  on white → 11:1 ✓ */
-        --accent-primary: #7a5200;
-        --accent-secondary: #5c3d00;
-        --accent-subtle: rgba(122, 82, 0, 0.08);
-        --accent-glow: rgba(122, 82, 0, 0.18);
+        /* Accent — deeper brass-gold for light backgrounds
+           --accent-primary  : #6b4f1a  on bg-raised → 7.1:1 ✓
+           --accent-secondary: #543d14  on bg-raised → 9.5:1 ✓ */
+        --accent-primary: #6b4f1a;
+        --accent-secondary: #543d14;
+        --accent-subtle: rgba(107, 79, 26, 0.08);
+        --accent-glow: rgba(107, 79, 26, 0.18);
 
-        /* Interactive */
-        --interactive-primary: #4530a0;
-        --interactive-secondary: #5d48cc;
-        --interactive-subtle: rgba(69, 48, 160, 0.08);
+        /* Interactive — deeper verdigris teal for light backgrounds */
+        --interactive-primary: #235850;
+        --interactive-secondary: #2f6b63;
+        --interactive-subtle: rgba(47, 107, 99, 0.08);
+
+        /* Brand — brick-red primary action colour (buttons, HP/damage)
+           --brand-primary: #a3311f  on bg-raised → 7.0:1 ✓ */
+        --brand-primary: #a3311f;
+        --brand-hover: #7e2517;
+        --brand-subtle: rgba(163, 49, 31, 0.08);
 
         /* Status */
-        --status-success: #166534;
-        --status-warning: #92400e;
-        --status-danger: #991b1b;
-        --status-info: #1e40af;
+        --status-success: #2f6b3f;
+        --status-success-subtle: rgba(47, 107, 63, 0.1);
+        --status-warning: #8a5a10;
+        --status-warning-subtle: rgba(138, 90, 16, 0.1);
+        --status-danger: #8a3020;
+        --status-info: #235866;
+        --status-info-subtle: rgba(35, 88, 102, 0.1);
 
         /* Shadows */
-        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
-        --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+        --shadow-sm: 0 1px 3px rgba(36, 28, 20, 0.1);
+        --shadow-md: 0 4px 12px rgba(36, 28, 20, 0.12);
+        --shadow-lg: 0 8px 24px rgba(36, 28, 20, 0.16);
 
         /* Legacy aliases */
         --ink: var(--text-primary);
@@ -166,10 +191,10 @@
         --leather2: var(--bg-overlay);
         --gold: var(--accent-secondary);
         --gold2: var(--accent-primary);
-        --gold-glow: #8c6200;
-        --crimson: var(--interactive-secondary);
-        --crimson2: var(--interactive-primary);
-        --shadow: rgba(0, 0, 0, 0.15);
+        --gold-glow: #8a6a24;
+        --crimson: var(--brand-primary);
+        --crimson2: var(--brand-hover);
+        --shadow: rgba(36, 28, 20, 0.15);
         --fade: var(--interactive-subtle);
         --class-col: var(--bg-elevated);
         --scroll-w: 8px;
@@ -208,17 +233,17 @@
         background-image:
           radial-gradient(
             ellipse at 15% 20%,
-            rgba(80, 50, 160, 0.18) 0%,
+            var(--accent-subtle) 0%,
             transparent 55%
           ),
           radial-gradient(
             ellipse at 85% 80%,
-            rgba(40, 20, 100, 0.22) 0%,
+            var(--brand-subtle) 0%,
             transparent 55%
           ),
           radial-gradient(
             ellipse at 50% 50%,
-            rgba(20, 10, 50, 0.4) 0%,
+            var(--shadow) 0%,
             transparent 80%
           ),
           url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
@@ -239,6 +264,9 @@
       ::-webkit-scrollbar-thumb {
         background: var(--border-default);
         border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--accent-secondary);
       }
 
       /* ═══════════════════════════════════════════════════════════
@@ -313,8 +341,12 @@
         width: 100%;
         height: 2px;
         background: var(--accent-primary);
-        opacity: 0.3;
+        opacity: 0.25;
+        transition: opacity 0.3s;
         z-index: 0;
+      }
+      .step-node.done:not(:last-child)::after {
+        opacity: 0.9;
       }
       .step-dot {
         width: clamp(24px, 3vw, 34px);
@@ -333,15 +365,25 @@
         z-index: 1;
         transition: all 0.3s;
       }
+      .step-node:hover .step-dot {
+        border-color: var(--brand-primary);
+        background: var(--bg-overlay);
+      }
       .step-node.active .step-dot {
-        background: var(--accent-primary);
-        color: var(--bg-base);
-        box-shadow: 0 0 12px rgba(200, 148, 26, 0.6);
+        background: var(--brand-primary);
+        border-color: var(--brand-primary);
+        color: var(--text-on-accent);
+        box-shadow: 0 0 12px var(--brand-subtle);
       }
       .step-node.done .step-dot {
         background: var(--accent-primary);
+        border-color: var(--accent-primary);
         color: var(--bg-base);
-        opacity: 0.7;
+        opacity: 1;
+      }
+      .step-node.done:hover .step-dot {
+        border-color: var(--accent-primary);
+        background: var(--accent-secondary);
       }
       .step-label {
         font-family: "Cinzel", serif;
@@ -352,8 +394,12 @@
         text-transform: uppercase;
         white-space: nowrap;
         padding: 0 0.8rem;
+        transition: color 0.3s;
       }
       .step-node.active .step-label {
+        color: var(--brand-primary);
+      }
+      .step-node.done .step-label {
         color: var(--accent-primary);
       }
 
@@ -400,11 +446,39 @@
         color: var(--accent-primary);
         letter-spacing: 0.06em;
         border-bottom: 2px solid var(--accent-primary);
-        padding-bottom: 0.4rem;
-        margin-bottom: 1.2rem;
+        padding: 0.5rem 0.7rem 0.5rem 0.8rem;
+        margin: 0 -0.1rem 1.2rem;
         display: flex;
         align-items: center;
         gap: 0.6rem;
+        background: linear-gradient(
+          90deg,
+          var(--accent-subtle),
+          transparent 70%
+        );
+        border-left: 3px solid var(--accent-secondary);
+        border-radius: 3px 3px 0 0;
+      }
+      .step-panel > .section-title:first-child {
+        margin-top: 0;
+      }
+      .subsection-title {
+        font-family: "Cinzel", serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: var(--accent-primary);
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-default);
+        padding-bottom: 0.35rem;
+        margin: 0 0 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .subsection-title.interactive {
+        color: var(--interactive-primary);
+        border-bottom-color: var(--interactive-primary);
       }
       .section-title .rune {
         font-size: 1.1rem;
@@ -438,32 +512,51 @@
         transition:
           background 0.18s,
           border-color 0.18s,
-          box-shadow 0.18s;
+          box-shadow 0.18s,
+          transform 0.18s;
         position: relative;
         min-height: 64px; /* touch-friendly minimum */
       }
       .pick-card:hover {
-        border-color: var(--accent-primary);
+        border-color: var(--brand-primary);
         background: var(--bg-elevated);
-        transform: translateY(-1px);
+        transform: translateY(-2px);
         box-shadow:
-          0 4px 20px rgba(0, 0, 0, 0.4),
-          0 0 12px var(--accent-subtle);
+          var(--shadow-md),
+          0 0 0 1px var(--brand-subtle);
       }
       .pick-card.selected {
-        border-color: var(--accent-primary);
+        border: 2px solid var(--accent-primary);
         background: var(--bg-raised);
+        padding: calc(0.9rem - 0.5px) calc(1rem - 0.5px);
         box-shadow:
-          0 0 0 2px var(--accent-primary),
-          0 4px 20px var(--accent-subtle);
+          0 0 0 3px var(--accent-subtle),
+          var(--shadow-md);
+      }
+      .pick-card.selected:hover {
+        border-color: var(--accent-primary);
+        transform: translateY(-2px);
+      }
+      .pick-card.selected::before {
+        content: "";
+        position: absolute;
+        top: -1.5px;
+        right: 14px;
+        width: 22px;
+        height: 26px;
+        background: var(--accent-primary);
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+        box-shadow: var(--shadow-sm);
       }
       .pick-card.selected::after {
-        content: "✦";
+        content: "✓";
         position: absolute;
-        top: 6px;
-        right: 8px;
-        color: var(--accent-primary);
-        font-size: 0.85rem;
+        top: 1px;
+        right: 20px;
+        color: var(--bg-base);
+        font-size: 0.7rem;
+        font-weight: 900;
+        z-index: 1;
       }
       .pick-card h3 {
         font-family: "Cinzel", serif;
@@ -538,8 +631,10 @@
       input[type="email"]:focus,
       input[type="search"]:focus,
       select:focus,
-      textarea {
-        color: var(--interactive-primary);
+      textarea:focus {
+        border-bottom-color: var(--brand-primary);
+        box-shadow: 0 4px 10px -6px var(--brand-subtle);
+        color: var(--text-primary);
         text-decoration: none;
       }
       a:hover {
@@ -590,22 +685,23 @@
         transform: scale(0.97);
       }
       .btn-primary {
-        background: var(--interactive-primary);
-        color: var(--bg-base);
-        box-shadow: 0 2px 8px var(--interactive-subtle);
+        background: var(--brand-primary);
+        color: var(--text-on-accent);
+        box-shadow: 0 2px 8px var(--brand-subtle);
       }
       .btn-primary:hover {
-        background: var(--interactive-secondary);
-        box-shadow: 0 4px 14px var(--interactive-subtle);
+        background: var(--brand-hover);
+        box-shadow: 0 4px 14px var(--brand-subtle);
+        transform: translateY(-1px);
       }
       .btn-gold {
         background: var(--accent-primary);
         color: var(--bg-base);
-        box-shadow: 0 3px 12px rgba(200, 148, 26, 0.4);
+        box-shadow: 0 3px 12px var(--accent-subtle);
       }
       .btn-gold:hover {
         transform: translateY(-1px);
-        box-shadow: 0 5px 16px rgba(200, 148, 26, 0.5);
+        box-shadow: 0 5px 16px var(--accent-glow);
       }
       .btn-ghost {
         background: transparent;
@@ -630,11 +726,15 @@
       /* ── Ability Score Box ── */
       .ability-box {
         background: var(--bg-raised);
-        border: 2px solid var(--border-default);
-        border-radius: 4px;
-        padding: 0.6rem 0.4rem;
+        border: 1.5px solid var(--border-default);
+        border-top: 3px solid var(--accent-secondary);
+        border-radius: 3px 3px 5px 5px;
+        padding: 0.7rem 0.4rem 0.6rem;
         text-align: center;
         position: relative;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.03),
+          var(--shadow-sm);
       }
       .ability-grid {
         display: grid;
@@ -660,17 +760,19 @@
       }
       .ability-box .ability-mod {
         font-family: "Cinzel", serif;
-        font-size: 0.75rem;
+        font-size: 0.78rem;
         color: var(--accent-primary);
         background: var(--bg-elevated);
+        border: 1.5px solid var(--accent-secondary);
         border-radius: 50%;
         width: 28px;
         height: 28px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto;
+        margin: 0.2rem auto 0;
         font-weight: 700;
+        box-shadow: var(--shadow-sm);
       }
       .ability-box .ability-controls {
         display: flex;
@@ -681,9 +783,9 @@
       .ability-btn {
         width: 22px;
         height: 22px;
-        border: 1px solid var(--accent);
+        border: 1px solid var(--interactive-secondary);
         background: var(--bg-elevated);
-        color: var(--accent-primary);
+        color: var(--interactive-primary);
         font-size: 1rem;
         font-weight: 700;
         cursor: pointer;
@@ -694,9 +796,10 @@
         line-height: 1;
         transition: all 0.15s;
       }
-      .ability-btn:hover {
-        background: var(--accent);
-        color: var(--text-primary);
+      .ability-btn:hover:not(:disabled) {
+        background: var(--interactive-primary);
+        border-color: var(--interactive-primary);
+        color: var(--text-on-accent);
       }
       .ability-btn:disabled {
         opacity: 0.3;
@@ -738,13 +841,14 @@
         white-space: nowrap;
       }
       .method-tab.active {
-        background: var(--accent);
-        color: var(--text-primary);
-        border-color: var(--accent);
+        background: var(--accent-primary);
+        color: var(--bg-base);
+        border-color: var(--accent-primary);
+        font-weight: 700;
       }
       .method-tab:hover:not(.active) {
-        border-color: var(--accent-primary);
-        color: var(--accent-primary);
+        border-color: var(--interactive-primary);
+        color: var(--interactive-primary);
       }
 
       /* Standard array drag area */
@@ -959,7 +1063,7 @@
         background: var(--bg-raised);
       }
       .equip-row.has-item {
-        background: rgba(184, 150, 58, 0.06);
+        background: var(--accent-subtle);
       }
       .equip-row.inv-row {
         cursor: default;
@@ -988,9 +1092,9 @@
         flex-shrink: 0;
         width: 22px;
         height: 22px;
-        border: 1px solid var(--accent2);
+        border: 1px solid var(--interactive-secondary);
         border-radius: 3px;
-        background: rgba(90, 72, 176, 0.15);
+        background: var(--interactive-subtle);
         color: var(--interactive-primary);
         font-size: 1.1rem;
         line-height: 1;
@@ -1004,8 +1108,8 @@
         padding: 0;
       }
       .equip-add-btn:hover {
-        background: var(--accent2);
-        color: #fff;
+        background: var(--interactive-primary);
+        color: var(--text-on-accent);
       }
 
       /* Quantity badge */
@@ -1063,7 +1167,7 @@
         font-size: clamp(1.2rem, 4vw, 3rem);
         color: var(--accent-primary);
         text-shadow:
-          0 0 20px rgba(184, 150, 58, 0.3),
+          0 0 20px var(--accent-glow),
           1px 1px 0 rgba(0, 0, 0, 0.5);
         line-height: 1.1;
         word-break: break-word;
@@ -1139,6 +1243,13 @@
         margin-bottom: 0.5rem;
       }
 
+      .stat-box {
+        background: var(--bg-elevated);
+        border: 1.5px solid var(--border-default);
+        border-top: 3px solid var(--accent-secondary);
+        border-radius: 4px;
+        text-align: center;
+      }
       .stat-box-label {
         font-family: "Cinzel", serif;
         font-size: 0.55rem;
@@ -1324,12 +1435,12 @@
       @keyframes concPulse {
         0%,
         100% {
-          border-color: var(--accent2);
+          border-color: var(--interactive-secondary);
           box-shadow: none;
         }
         50% {
           border-color: var(--interactive-primary);
-          box-shadow: 0 0 10px rgba(120, 90, 220, 0.3);
+          box-shadow: 0 0 10px var(--interactive-subtle);
         }
       }
       .conc-banner-icon {
@@ -1351,7 +1462,7 @@
         font-family: "Cinzel", serif;
         font-size: 0.62rem;
         padding: 0.2rem 0.5rem;
-        border: 1px solid var(--accent2);
+        border: 1px solid var(--interactive-secondary);
         border-radius: 2px;
         background: transparent;
         color: var(--interactive-primary);
@@ -1360,8 +1471,8 @@
         flex-shrink: 0;
       }
       .conc-banner-end:hover {
-        background: var(--accent2);
-        color: #fff;
+        background: var(--interactive-primary);
+        color: var(--text-on-accent);
       }
 
       /* ── Short Rest Modal ── */
@@ -1390,7 +1501,7 @@
         padding: 1rem 1.2rem 0.7rem;
         background: linear-gradient(
           135deg,
-          rgba(90, 72, 176, 0.15),
+          var(--interactive-subtle),
           transparent
         );
         border-bottom: 1px solid var(--border);
@@ -1695,7 +1806,7 @@
       }
       .inspiration-box.active {
         border-color: var(--accent-primary);
-        background: rgba(184, 150, 58, 0.12);
+        background: var(--accent-subtle);
         box-shadow: 0 0 12px var(--accent-subtle);
       }
       .inspiration-gem {
@@ -1710,7 +1821,7 @@
       .inspiration-box.active .inspiration-gem {
         background: var(--accent-primary);
         border-color: var(--accent-primary);
-        box-shadow: 0 0 8px rgba(240, 204, 112, 0.6);
+        box-shadow: 0 0 8px var(--accent-glow);
       }
       .inspiration-label {
         font-family: "Cinzel", serif;
@@ -1764,7 +1875,7 @@
          DEATH SAVES
          ═══════════════════════════════════════════════════════════ */
       .death-saves-panel {
-        background: rgba(139, 28, 28, 0.12);
+        background: var(--brand-subtle);
         border: 2px solid var(--status-danger);
         border-radius: 4px;
         padding: 0.7rem;
@@ -1782,7 +1893,7 @@
         }
         50% {
           border-color: var(--status-danger);
-          box-shadow: 0 0 12px rgba(200, 34, 34, 0.3);
+          box-shadow: 0 0 12px var(--brand-subtle);
         }
       }
       .death-saves-title {
@@ -1824,12 +1935,12 @@
       .death-pip.success {
         background: var(--status-success);
         border-color: var(--status-success);
-        box-shadow: 0 0 6px rgba(76, 175, 125, 0.5);
+        box-shadow: 0 0 6px var(--status-success-subtle);
       }
       .death-pip.fail {
         background: var(--status-danger);
         border-color: var(--status-danger);
-        box-shadow: 0 0 6px rgba(224, 80, 80, 0.5);
+        box-shadow: 0 0 6px var(--brand-subtle);
       }
       .death-stable {
         font-family: "Cinzel", serif;
@@ -1874,9 +1985,9 @@
       }
       .condition-chip.active {
         border-color: var(--status-warning);
-        background: rgba(204, 119, 0, 0.15);
+        background: var(--status-warning-subtle);
         color: var(--status-warning);
-        box-shadow: 0 0 6px rgba(204, 119, 0, 0.2);
+        box-shadow: 0 0 6px var(--status-warning-subtle);
       }
 
       .condition-dot {
@@ -2017,6 +2128,14 @@
         gap: 0.5rem;
       }
 
+      .currency-box {
+        background: var(--bg-elevated);
+        border: 1.5px solid var(--border-default);
+        border-top: 3px solid var(--accent-secondary);
+        border-radius: 3px 3px 5px 5px;
+        padding: 0.5rem 0.3rem 0.4rem;
+        text-align: center;
+      }
       .currency-coin {
         font-size: 1rem;
         line-height: 1;
@@ -2105,34 +2224,34 @@
         border: 1px solid var(--border-default);
       }
       .prof-tag.weapon {
-        border-color: var(--bg-elevated);
+        border-color: var(--accent-secondary);
         color: var(--accent-secondary);
-        background: rgba(90, 48, 16, 0.2);
+        background: var(--accent-subtle);
       }
       .prof-tag.armor {
-        border-color: var(--bg-elevated);
+        border-color: var(--interactive-primary);
         color: var(--interactive-primary);
-        background: rgba(26, 58, 90, 0.2);
+        background: var(--interactive-subtle);
       }
       .prof-tag.tool {
-        border-color: var(--bg-elevated);
+        border-color: var(--status-success);
         color: var(--status-success);
-        background: rgba(42, 74, 26, 0.2);
+        background: var(--status-success-subtle);
       }
       .prof-tag.language {
-        border-color: var(--bg-elevated);
-        color: var(--interactive-primary);
-        background: rgba(58, 26, 90, 0.2);
+        border-color: var(--status-info);
+        color: var(--status-info);
+        background: var(--status-info-subtle);
       }
       .prof-tag.skill {
-        border-color: var(--bg-elevated);
-        color: var(--status-info);
-        background: rgba(26, 58, 58, 0.2);
+        border-color: var(--accent-primary);
+        color: var(--accent-primary);
+        background: var(--accent-subtle);
       }
       .prof-tag.save {
-        border-color: var(--bg-elevated);
-        color: var(--accent-primary);
-        background: rgba(58, 42, 26, 0.2);
+        border-color: var(--brand-primary);
+        color: var(--brand-primary);
+        background: var(--brand-subtle);
       }
 
       /* ═══════════════════════════════════════════════════════════
@@ -2386,12 +2505,27 @@
 
       /* ornamental divider */
       .divider {
-        text-align: center;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
         color: var(--accent-primary);
-        font-size: 1.2rem;
-        margin: 1rem 0;
-        opacity: 0.6;
-        letter-spacing: 0.3em;
+        font-size: 0.9rem;
+        margin: 1.4rem 0;
+        opacity: 0.85;
+      }
+      .divider::before,
+      .divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--accent-secondary) 15%,
+          var(--accent-secondary) 85%,
+          transparent
+        );
+        opacity: 0.5;
       }
 
       /* notice box */
@@ -2443,10 +2577,14 @@
          ═══════════════════════════════════════════════════════════ */
       .hp-tracker {
         background: var(--bg-raised);
-        border: 2px solid var(--border-default);
-        border-radius: 4px;
+        border: 1.5px solid var(--border-default);
+        border-top: 3px solid var(--brand-primary);
+        border-radius: 3px 3px 6px 6px;
         padding: 0.8rem;
         text-align: center;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.03),
+          var(--shadow-sm);
       }
       .hp-display {
         display: flex;
@@ -2466,7 +2604,7 @@
       }
       .hp-current.bloodied {
         color: var(--status-danger);
-        text-shadow: 0 0 10px rgba(220, 50, 50, 0.5);
+        text-shadow: 0 0 10px var(--brand-subtle);
       }
       .hp-current.critical {
         color: var(--status-danger);
@@ -2509,7 +2647,7 @@
       }
       .hp-btn-dmg {
         background: var(--status-danger);
-        color: #ffffff;
+        color: var(--text-on-accent);
         border: 1.5px solid transparent;
       }
       .hp-btn-dmg:hover {
@@ -2519,7 +2657,7 @@
       }
       .hp-btn-heal {
         background: var(--status-success);
-        color: #ffffff;
+        color: var(--text-on-accent);
         border: 1.5px solid transparent;
       }
       .hp-btn-heal:hover {
@@ -2529,7 +2667,7 @@
       }
       .hp-btn-temp {
         background: var(--interactive-secondary);
-        color: #ffffff;
+        color: var(--text-on-accent);
         border: 1.5px solid transparent;
       }
       .hp-btn-temp:hover {
@@ -2692,7 +2830,7 @@
         border-radius: 50%;
         font-size: 1.4rem;
         cursor: pointer;
-        box-shadow: 0 4px 20px rgba(184, 150, 58, 0.5);
+        box-shadow: 0 4px 20px var(--accent-glow);
         transition: all 0.2s;
         display: flex;
         align-items: center;
@@ -2854,16 +2992,16 @@
         min-width: 100px;
       }
       .btn-short-rest {
-        background: rgba(90, 72, 176, 0.15);
-        border-color: var(--accent);
+        background: var(--interactive-subtle);
+        border-color: var(--interactive-secondary);
         color: var(--interactive-primary);
       }
       .btn-short-rest:hover {
-        background: var(--accent);
-        color: var(--text-primary);
+        background: var(--interactive-primary);
+        color: var(--text-on-accent);
       }
       .btn-long-rest {
-        background: rgba(184, 150, 58, 0.12);
+        background: var(--accent-subtle);
         border-color: var(--accent-primary);
         color: var(--accent-primary);
       }
@@ -2920,7 +3058,7 @@
       }
       .lang-chip.selected {
         border-color: var(--accent-primary);
-        background: rgba(184, 150, 58, 0.12);
+        background: var(--accent-subtle);
         color: var(--accent-primary);
         box-shadow: 0 0 4px var(--accent-subtle);
       }
@@ -2967,18 +3105,18 @@
         border: 1px solid;
       }
       .lang-known-tag.fixed {
-        border-color: var(--accent2);
-        background: rgba(90, 72, 176, 0.15);
+        border-color: var(--interactive-primary);
+        background: var(--interactive-subtle);
         color: var(--interactive-primary);
       }
       .lang-known-tag.chosen {
         border-color: var(--accent-primary);
-        background: rgba(184, 150, 58, 0.12);
+        background: var(--accent-subtle);
         color: var(--accent-primary);
         cursor: pointer;
       }
       .lang-known-tag.chosen:hover {
-        background: rgba(184, 150, 58, 0.22);
+        background: var(--accent-glow);
       }
       .lang-known-tag.chosen::after {
         content: " ×";
@@ -3072,17 +3210,17 @@
       .feat-cat.combat {
         border-color: var(--status-danger);
         color: var(--status-danger);
-        background: rgba(100, 30, 30, 0.2);
+        background: var(--brand-subtle);
       }
       .feat-cat.magic {
         border-color: var(--interactive-primary);
         color: var(--interactive-primary);
-        background: rgba(50, 30, 120, 0.2);
+        background: var(--interactive-subtle);
       }
       .feat-cat.skill {
-        border-color: var(--bg-elevated);
+        border-color: var(--status-success);
         color: var(--status-success);
-        background: rgba(20, 60, 35, 0.2);
+        background: rgba(127, 176, 108, 0.15);
       }
       .feat-cat.general {
         border-color: var(--border);
@@ -3147,14 +3285,14 @@
         background: var(--bg-elevated);
       }
       .asi-chip.open-slot {
-        border-color: var(--accent2);
+        border-color: var(--interactive-primary);
         color: var(--interactive-primary);
-        background: rgba(90, 72, 176, 0.1);
+        background: var(--interactive-subtle);
       }
       .asi-chip.feat-used {
         border-color: var(--accent-primary);
         color: var(--accent-primary);
-        background: rgba(184, 150, 58, 0.12);
+        background: var(--accent-subtle);
       }
       .feat-chip {
         display: flex;
@@ -3247,12 +3385,12 @@
         flex-shrink: 0;
       }
       .inv-qty-btn:hover {
-        background: var(--accent2);
-        color: #fff;
+        background: var(--interactive-primary);
+        color: var(--text-on-accent);
       }
       .inv-qty-btn.minus:hover {
         background: var(--status-danger);
-        color: #fff;
+        color: var(--text-on-accent);
       }
       .inv-qty-num {
         font-family: "Cinzel", serif;
@@ -3306,10 +3444,10 @@
         color: var(--interactive-primary);
         min-width: 36px;
         text-align: center;
-        border: 2px solid var(--accent2);
+        border: 2px solid var(--interactive-secondary);
         border-radius: 4px;
         padding: 2px 6px;
-        background: rgba(90, 72, 176, 0.1);
+        background: var(--interactive-subtle);
       }
       .hd-remaining {
         font-family: "Crimson Pro", serif;
@@ -3331,16 +3469,16 @@
         font-size: 0.7rem;
         letter-spacing: 0.05em;
         padding: 0.3rem 0.8rem;
-        border: 1.5px solid var(--accent2);
+        border: 1.5px solid var(--interactive-secondary);
         border-radius: 3px;
-        background: rgba(90, 72, 176, 0.15);
+        background: var(--interactive-subtle);
         color: var(--interactive-primary);
         cursor: pointer;
         transition: all 0.15s;
       }
       .hd-roll-btn:hover {
-        background: var(--accent2);
-        color: #fff;
+        background: var(--interactive-primary);
+        color: var(--text-on-accent);
       }
       .hd-roll-btn:disabled {
         opacity: 0.4;
@@ -3467,19 +3605,28 @@
         width: 100%;
         padding: 0.5rem;
         font-size: 0.82rem;
-        background: var(--interactive-secondary);
-        color: #fff;
+        background: var(--brand-primary);
+        color: var(--text-on-accent);
         border: none;
         border-radius: 4px;
         cursor: pointer;
         font-family: "Cinzel", serif;
         letter-spacing: 0.05em;
+        transition:
+          background 0.15s,
+          transform 0.15s;
       }
       .cond-apply-btn.active {
         background: var(--bg-elevated);
+        color: var(--text-primary);
       }
       .cond-apply-btn:hover {
-        opacity: 1;
+        background: var(--brand-hover);
+        transform: translateY(-1px);
+      }
+      .cond-apply-btn.active:hover {
+        background: var(--bg-overlay);
+        transform: none;
       }
 
       /* ═══════════════════════════════════════════════════════════
@@ -3548,18 +3695,22 @@
         cursor: pointer;
         background: linear-gradient(
           135deg,
-          var(--interactive-secondary),
-          var(--interactive-primary)
+          var(--brand-hover),
+          var(--brand-primary)
         );
-        color: #fff;
+        color: var(--text-on-accent);
         border: none;
         border-radius: 4px;
         font-family: "Cinzel", serif;
         letter-spacing: 0.06em;
-        transition: opacity 0.15s;
+        transition:
+          opacity 0.15s,
+          transform 0.15s;
       }
       .atk-roll-btn:hover {
         opacity: 1;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px var(--brand-subtle);
       }
       .atk-result-box {
         margin-top: 0.7rem;
@@ -3588,7 +3739,7 @@
         font-size: 1.3rem;
         font-family: "Cinzel", serif;
         color: var(--accent-primary);
-        text-shadow: 0 0 10px rgba(240, 204, 112, 0.6);
+        text-shadow: 0 0 10px var(--accent-glow);
       }
       .atk-result-fumble {
         font-size: 1.3rem;
@@ -3632,11 +3783,7 @@
       }
       .levelup-header {
         padding: 1.2rem 1.4rem 0.8rem;
-        background: linear-gradient(
-          135deg,
-          rgba(184, 150, 58, 0.12),
-          transparent
-        );
+        background: linear-gradient(135deg, var(--accent-subtle), transparent);
         border-bottom: 1px solid var(--border);
       }
       .levelup-header h2 {
@@ -3792,14 +3939,16 @@
           var(--bg-elevated),
           var(--status-success)
         );
-        color: #fff;
+        color: var(--text-on-accent);
         border: none;
         border-radius: 4px;
         font-family: "Cinzel", serif;
         letter-spacing: 0.05em;
+        transition: transform 0.15s;
       }
       .lu-confirm-btn:hover {
         opacity: 1;
+        transform: translateY(-1px);
       }
       .lu-cancel-btn {
         padding: 0.5rem 1rem;
@@ -3843,8 +3992,8 @@
         white-space: nowrap;
       }
       .levelup-trigger-btn:hover {
-        background: rgba(184, 150, 58, 0.35);
-        box-shadow: 0 0 8px rgba(184, 150, 58, 0.3);
+        background: var(--accent-glow);
+        box-shadow: 0 0 8px var(--accent-subtle);
       }
 
       /* ═══════════════════════════════════════════════════════════
@@ -3898,9 +4047,13 @@
       .official-stat-box {
         background: var(--bg-elevated);
         border: 1.5px solid var(--border-default);
-        border-radius: 6px;
+        border-top: 3px solid var(--accent-secondary);
+        border-radius: 3px 3px 6px 6px;
         padding: 0.5rem 0.3rem 0.3rem;
         text-align: center;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.03),
+          var(--shadow-sm);
       }
       .official-stat-val {
         font-family: "Cinzel", serif;
@@ -3932,18 +4085,10 @@
         font-size: 0.7rem;
       }
 
-      /* ═══════════════════════════════════════════════════════════════
-         ── Light-mode body gradient (soft warm tones) ───────────────
-
-      [data-theme="light"] body {
-        background-image:
-          radial-gradient(ellipse at 15% 20%, rgba(122,82,0,0.05) 0%, transparent 55%),
-          radial-gradient(ellipse at 85% 80%, rgba(69,48,160,0.04) 0%, transparent 55%) !important;
-      }
-
       /* ─────────────────────────────────────────────────────── */
 
-      ── Typography accessibility floor (injected Step 3) ───────── .tag,
+      /* ── Typography accessibility floor (injected Step 3) ───────── */
+      .tag,
       .spell-level-badge,
       .slot-level-badge,
       .char-badge,
@@ -4030,7 +4175,7 @@
 
       /* ─────────────────────────────────────────────────────────── */
 
-      UNIFIED RESPONSIVE SYSTEM — 4 breakpoints
+      /* UNIFIED RESPONSIVE SYSTEM — 4 breakpoints
          1200px+  : wide desktop  (3-col sheet, full padding)
           900px+  : desktop       (3-col sheet, normal)
           600px+  : tablet        (2-col sheet, reduced)
@@ -5091,21 +5236,13 @@
 
           <!-- Fixed (auto-granted) languages -->
           <div style="margin-top: 1rem">
-            <p
-              class="section-title"
-              style="font-size: 0.82rem; margin-bottom: 0.5rem"
-            >
-              ✦ Granted Languages
-            </p>
+            <p class="subsection-title">✦ Granted Languages</p>
             <div id="langFixedList"></div>
           </div>
 
           <!-- Choice dropdown — always rendered, shown/hidden based on slots -->
           <div id="langChoiceSection" style="margin-top: 1.2rem">
-            <p
-              class="section-title"
-              style="font-size: 0.82rem; margin-bottom: 0.4rem"
-            >
+            <p class="subsection-title">
               ✦ Choose Additional Languages
               <span id="langChoiceCount" class="lang-choice-count"></span>
             </p>
@@ -5138,12 +5275,7 @@
 
           <!-- Custom / exotic language input -->
           <div style="margin-top: 1.2rem">
-            <p
-              class="section-title"
-              style="font-size: 0.82rem; margin-bottom: 0.5rem"
-            >
-              ✦ Add Custom / Exotic Language
-            </p>
+            <p class="subsection-title">✦ Add Custom / Exotic Language</p>
             <div style="display: flex; gap: 0.5rem; align-items: center">
               <input
                 type="text"
@@ -5221,16 +5353,7 @@
               Drag the values below onto each ability, or click an ability to
               assign the next available value.
             </div>
-            <p
-              style="
-                font-family: &quot;Cinzel&quot;, serif;
-                font-size: 0.75rem;
-                margin-bottom: 0.4rem;
-                color: var(--crimson);
-              "
-            >
-              Available Values
-            </p>
+            <p class="subsection-title">✦ Available Values</p>
             <div class="array-pool" id="arrayPool"></div>
             <div class="ability-grid" id="saGrid"></div>
           </div>
@@ -5289,21 +5412,13 @@
 
           <!-- ASI / Feat slot summary -->
           <div style="margin-top: 0.8rem">
-            <p
-              class="section-title"
-              style="font-size: 0.82rem; margin-bottom: 0.4rem"
-            >
-              ✦ Your ASI / Feat Slots
-            </p>
+            <p class="subsection-title">✦ Your ASI / Feat Slots</p>
             <div id="featAsiSlots"></div>
           </div>
 
           <!-- Currently selected feats -->
           <div id="featSelectedSection" style="display: none; margin-top: 1rem">
-            <p
-              class="section-title"
-              style="font-size: 0.82rem; margin-bottom: 0.4rem"
-            >
+            <p class="subsection-title">
               ✦ Selected Feats
               <span
                 id="featSlotLabel"
@@ -5313,6 +5428,8 @@
                   font-size: 0.78rem;
                   color: var(--text-dim);
                   margin-left: 0.5rem;
+                  text-transform: none;
+                  letter-spacing: normal;
                 "
               ></span>
             </p>
@@ -5321,12 +5438,7 @@
 
           <!-- Feat browser -->
           <div style="margin-top: 1.2rem">
-            <p
-              class="section-title"
-              style="font-size: 0.82rem; margin-bottom: 0.5rem"
-            >
-              ✦ Browse &amp; Select Feats
-            </p>
+            <p class="subsection-title">✦ Browse &amp; Select Feats</p>
             <div class="feat-filters">
               <input
                 type="text"
@@ -5436,41 +5548,33 @@
             <div id="selectedSpellsSection" style="margin-top: 1rem">
               <div
                 id="selectedSpellsCantripsHeader"
-                style="
-                  display: none;
-                  font-family: &quot;Cinzel&quot;, serif;
-                  font-size: 0.72rem;
-                  letter-spacing: 0.07em;
-                  text-transform: uppercase;
-                  color: var(--accent-primary);
-                  border-bottom: 1px solid var(--accent-primary);
-                  padding-bottom: 0.2rem;
-                  margin-bottom: 0.4rem;
-                "
+                class="subsection-title"
+                style="display: none"
               >
                 ✦ Cantrips &nbsp;<span
                   id="cantripCountLabel"
-                  style="font-weight: 400; color: var(--text-muted)"
+                  style="
+                    font-weight: 400;
+                    color: var(--text-muted);
+                    text-transform: none;
+                    letter-spacing: normal;
+                  "
                 ></span>
               </div>
               <div class="selected-spells" id="selectedCantrips"></div>
               <div
                 id="selectedSpellsKnownHeader"
-                style="
-                  display: none;
-                  font-family: &quot;Cinzel&quot;, serif;
-                  font-size: 0.72rem;
-                  letter-spacing: 0.07em;
-                  text-transform: uppercase;
-                  color: var(--interactive-primary);
-                  border-bottom: 1px solid var(--interactive-primary);
-                  padding-bottom: 0.2rem;
-                  margin: 0.7rem 0 0.4rem;
-                "
+                class="subsection-title interactive"
+                style="display: none; margin-top: 0.7rem"
               >
                 ✦ Spells Known &nbsp;<span
                   id="knownCountLabel"
-                  style="font-weight: 400; color: var(--text-muted)"
+                  style="
+                    font-weight: 400;
+                    color: var(--text-muted);
+                    text-transform: none;
+                    letter-spacing: normal;
+                  "
                 ></span>
               </div>
               <div class="selected-spells" id="selectedKnown"></div>
@@ -5586,9 +5690,7 @@
               <div class="equip-list" id="equipList"></div>
             </div>
             <div>
-              <p class="section-title" style="font-size: 0.9rem">
-                Your Inventory
-              </p>
+              <p class="subsection-title">✦ Your Inventory</p>
               <div
                 id="inventoryList"
                 class="equip-list"
@@ -6530,10 +6632,12 @@
                 <span
                   style="
                     font-size: 0.65rem;
-                    color: var(--text-dim);
+                    color: var(--text-muted);
                     font-family: &quot;Crimson Pro&quot;, serif;
                     font-weight: 400;
                     margin-left: 0.5rem;
+                    text-transform: none;
+                    letter-spacing: normal;
                   "
                   >(🛡 = equipped, ○ = unequipped — click to toggle)</span
                 >
@@ -6544,7 +6648,7 @@
                   font-family: &quot;Cinzel&quot;, serif;
                   font-size: 0.75rem;
                   margin-top: 0.5rem;
-                  color: var(--gold);
+                  color: var(--accent-primary);
                 "
               >
                 Gold: <strong id="sheetGold">0</strong> gp
@@ -6559,16 +6663,7 @@
                 "
                 class="no-print"
               >
-                <div
-                  style="
-                    font-family: &quot;Cinzel&quot;, serif;
-                    font-size: 0.72rem;
-                    color: var(--gold2);
-                    margin-bottom: 0.5rem;
-                  "
-                >
-                  ✦ Add Equipment
-                </div>
+                <p class="subsection-title">✦ Add Equipment</p>
                 <div
                   style="
                     display: flex;
@@ -7187,7 +7282,7 @@
       >
         <div
           style="
-            background: var(--parchment1);
+            background: var(--parchment2);
             border: 2px solid var(--gold);
             border-radius: 8px;
             padding: 1.5rem;
@@ -7233,7 +7328,7 @@
       >
         <div
           style="
-            background: var(--parchment1);
+            background: var(--parchment2);
             border: 2px solid var(--gold);
             border-radius: 8px;
             padding: 1.5rem;
@@ -13286,7 +13381,7 @@
           "</div></div>" +
           "</div>" +
           (concName
-            ? '<div style="margin-top:0.6rem;display:flex;align-items:center;gap:0.5rem;background:rgba(90,72,176,0.15);border:1.5px solid var(--interactive-primary);border-radius:4px;padding:0.4rem 0.7rem">' +
+            ? '<div style="margin-top:0.6rem;display:flex;align-items:center;gap:0.5rem;background:var(--interactive-subtle);border:1.5px solid var(--interactive-primary);border-radius:4px;padding:0.4rem 0.7rem">' +
               '<span style="font-size:1rem">🔮</span>' +
               '<span style="font-family:\'Cinzel\',serif;font-size:0.75rem;color:var(--interactive-primary)">Concentrating on <strong style="color:var(--text-primary)">' +
               escHtml(concName) +
@@ -17556,7 +17651,7 @@
             ? "var(--gold)"
             : "var(--border)";
           btn.style.background = ch.inspiration
-            ? "rgba(184,150,58,0.18)"
+            ? "var(--accent-subtle)"
             : "var(--parchment2)";
           btn.style.color = ch.inspiration
             ? "var(--gold2)"
@@ -18216,13 +18311,13 @@
                 hour: "2-digit",
                 minute: "2-digit",
               });
-              return `<div style="background:var(--parchment3);border:1px solid var(--border);border-radius:3px;padding:0.5rem 0.7rem">
+              return `<div style="background:var(--parchment3);border:1px solid var(--border);border-left:3px solid var(--accent-secondary);border-radius:3px;padding:0.5rem 0.7rem">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem">
-          <span style="font-family:'Cinzel',serif;font-size:0.62rem;color:var(--gold2)">${escHtml(dateStr)} · ${escHtml(timeStr)}</span>
+          <span style="font-family:'Cinzel',serif;font-size:0.62rem;color:var(--accent-primary);letter-spacing:0.04em">${escHtml(dateStr)} · ${escHtml(timeStr)}</span>
           <button onclick="deleteJournalEntry(${e.id})" title="Delete entry"
-            style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.75rem;padding:0 0.2rem">✕</button>
+            style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.75rem;padding:0 0.2rem" onmouseover="this.style.color='var(--status-danger)'" onmouseout="this.style.color='var(--text-muted)'">✕</button>
         </div>
-        <div style="font-size:0.78rem;color:var(--ink);white-space:pre-wrap;line-height:1.5">${escHtml(e.text)}</div>
+        <div style="font-size:0.78rem;color:var(--text-primary);white-space:pre-wrap;line-height:1.5">${escHtml(e.text)}</div>
       </div>`;
             })
             .join("");
