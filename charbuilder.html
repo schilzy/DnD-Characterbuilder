@@ -41,23 +41,23 @@
         color-scheme: dark;
 
         /* Backgrounds — tooled-leather surface system */
-        --bg-base: #1c130d; /* page background */
-        --bg-raised: #2b1d14; /* cards, panels */
-        --bg-elevated: #3a2818; /* inputs, hover states */
-        --bg-overlay: #4a3220; /* modals, tooltips */
+        --bg-base: #131613; /* page background */
+        --bg-raised: #090b09; /* cards, panels */
+        --bg-elevated: #1c221c; /* inputs, hover states */
+        --bg-overlay: #090b09; /* modals, tooltips */
 
         /* Borders */
-        --border-subtle: rgba(242, 232, 213, 0.08);
-        --border-default: rgba(242, 232, 213, 0.16);
-        --border-strong: rgba(242, 232, 213, 0.3);
+        --border-subtle: #71421e;
+        --border-default: #71421e;
+        --border-strong: #71421e;
 
         /* Text — parchment ink, measured against --bg-raised (#2b1d14)
            --text-primary  : #f2e8d5  contrast ~13.4:1 ✓
            --text-secondary: #d9c8a8  contrast  ~9.6:1 ✓
            --text-muted    : #ab9c81  contrast  ~4.9:1 ✓ (WCAG AA)
            --text-disabled : #6b5f4c  for truly disabled only, not body copy */
-        --text-primary: #f2e8d5;
-        --text-secondary: #d9c8a8;
+        --text-primary: #f7e9de;
+        --text-secondary: #f3dece;
         --text-muted: #ab9c81;
         --text-disabled: #6b5f4c;
         --text-on-accent: #ffffff;
@@ -65,10 +65,10 @@
         /* Accent — brass-gold ornament (borders, headers, dividers)
            --accent-primary  : #c9a04a  on bg-raised → 6.7:1 ✓
            --accent-secondary: #a8802c  on bg-raised → 4.5:1 ✓ (AA border) */
-        --accent-primary: #c9a04a;
-        --accent-secondary: #a8802c;
-        --accent-subtle: rgba(168, 128, 44, 0.15);
-        --accent-glow: rgba(201, 160, 74, 0.28);
+        --accent-primary: #a45e28;
+        --accent-secondary: #73421c;
+        --accent-subtle: #1c221c;
+        --accent-glow: #522f14;
 
         /* Interactive — verdigris teal for links, tags & secondary active states
            --interactive-primary  : #4fa89b  on bg-raised → 5.8:1 ✓
@@ -81,9 +81,9 @@
            --brand-primary: #c2503a  on bg-raised → 3.5:1 (large/UI text ✓)
            --brand-hover  : #d9553a  brighter for hover feedback
            White text on --brand-primary fill → 6.3:1 ✓ */
-        --brand-primary: #c2503a;
-        --brand-hover: #d9553a;
-        --brand-subtle: rgba(194, 80, 58, 0.16);
+        --brand-primary: #9c1c1c;
+        --brand-hover: #dd4040;
+        --brand-subtle: #121612;
 
         /* Status colours (all meet 3:1 on bg-raised for UI use) */
         --status-success: #7fb06c; /* sage green — 5.7:1 on bg-raised ✓ */
@@ -129,33 +129,33 @@
 
         /* Backgrounds
            Warm parchment cream — a page, not a screen */
-        --bg-base: #f2e8d5;
-        --bg-raised: #fbf6ea;
-        --bg-elevated: #efe4cd;
-        --bg-overlay: #e8dcc0;
+        --bg-base: #ede9e9;
+        --bg-raised: #f6f4f4;
+        --bg-elevated: #f6f4f4;
+        --bg-overlay: #e3dddd;
 
         /* Borders */
-        --border-subtle: rgba(36, 28, 20, 0.08);
-        --border-default: rgba(36, 28, 20, 0.16);
-        --border-strong: rgba(36, 28, 20, 0.3);
+        --border-subtle: #495a49;
+        --border-default: #374337;
+        --border-strong: #252d25;
 
-        /* Text — ink, measured against --bg-raised (#fbf6ea)
-           --text-primary  : #241c14  contrast ~15.6:1 ✓
-           --text-secondary: #4a3d2c  contrast  ~9.8:1 ✓
-           --text-muted    : #6b5f4c  contrast  ~5.8:1 ✓ */
-        --text-primary: #241c14;
-        --text-secondary: #4a3d2c;
-        --text-muted: #6b5f4c;
-        --text-disabled: #a89a7d;
-        --text-on-accent: #ffffff;
+        /* Text — ink, measured against --bg-raised (#f6f4f4)
+           --text-primary  : #060806  contrast ~15.6:1 ✓
+           --text-secondary: #121612  contrast  ~9.8:1 ✓
+           --text-muted    : #171a17  contrast  ~5.8:1 ✓ */
+        --text-primary: #060806;
+        --text-secondary: #121612;
+        --text-muted: #171a17;
+        --text-disabled: #8fa38f;
+        --text-on-accent: #d2dad2;
 
         /* Accent — deeper brass-gold for light backgrounds
            --accent-primary  : #6b4f1a  on bg-raised → 7.1:1 ✓
            --accent-secondary: #543d14  on bg-raised → 9.5:1 ✓ */
-        --accent-primary: #6b4f1a;
-        --accent-secondary: #543d14;
-        --accent-subtle: rgba(107, 79, 26, 0.08);
-        --accent-glow: rgba(107, 79, 26, 0.18);
+        --accent-primary: #cf7b3a;
+        --accent-secondary: #e3b28c;
+        --accent-subtle: #f9f5f3;
+        --accent-glow: #fbf4ef;
 
         /* Interactive — deeper verdigris teal for light backgrounds */
         --interactive-primary: #235850;
@@ -164,16 +164,16 @@
 
         /* Brand — brick-red primary action colour (buttons, HP/damage)
            --brand-primary: #a3311f  on bg-raised → 7.0:1 ✓ */
-        --brand-primary: #a3311f;
-        --brand-hover: #7e2517;
-        --brand-subtle: rgba(163, 49, 31, 0.08);
+        --brand-primary: #e34f4f;
+        --brand-hover: #c21e1e;
+        --brand-subtle: #fceeee;
 
         /* Status */
         --status-success: #2f6b3f;
         --status-success-subtle: rgba(47, 107, 63, 0.1);
-        --status-warning: #8a5a10;
-        --status-warning-subtle: rgba(138, 90, 16, 0.1);
-        --status-danger: #8a3020;
+        --status-warning: #e77474;
+        --status-warning-subtle: #f6cbcb;
+        --status-danger: #da2f2f;
         --status-info: #235866;
         --status-info-subtle: rgba(35, 88, 102, 0.1);
 
