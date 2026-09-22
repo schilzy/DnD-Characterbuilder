@@ -1,3 +1,6 @@
+I used below websote to generate and grab gradients
+https://coolors.co/121612-e3dddd-4fa89b-fbf4ef-dd4040
+
 /* CSS HEX */
 --onyx: #121612ff;
 --alabaster-grey: #e3ddddff;
