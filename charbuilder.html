@@ -1154,6 +1154,12 @@
       #sheet.visible {
         display: block;
       }
+      #sheetCard {
+        transform-origin: top center;
+        /* JS sets an explicit transform: scale() here when the sheet's
+           natural content is wider than the viewport can show, so nothing
+           gets clipped or forces a horizontal scrollbar. */
+      }
 
       .sheet-header {
         display: grid;
@@ -2197,9 +2203,10 @@
         letter-spacing: 0.07em;
         text-transform: uppercase;
         color: var(--text-muted);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        line-height: 1.25;
       }
       .sense-value {
         font-family: "Cinzel", serif;
@@ -4641,6 +4648,10 @@
 
         #sheet {
           display: block !important;
+          height: auto !important;
+        }
+        #sheetCard {
+          transform: none !important;
         }
         #sheet .card {
           box-shadow: none !important;
@@ -5704,7 +5715,17 @@
                   value="0"
                   min="0"
                   oninput="
-                    ch.gold = +this.value;
+                    ch.currency = ch.currency || {
+                      cp: 0,
+                      sp: 0,
+                      ep: 0,
+                      gp: 0,
+                      pp: 0,
+                    };
+                    ch.currency.gp = +this.value;
+                    ch.gold = ch.currency.gp;
+                    var gpEl = document.getElementById('currGP');
+                    if (gpEl) gpEl.value = ch.currency.gp;
                     persistState();
                   "
                 />
@@ -5733,6 +5754,17 @@
   ════════════════════════════════════════ -->
       <div id="sheet">
         <div class="card" id="sheetCard">
+          <!-- ── Edit Character (return to builder) ── -->
+          <div class="no-print" style="margin-bottom: 1rem">
+            <button
+              class="btn btn-ghost"
+              id="editCharacterBtn"
+              onclick="gotoStep(lastEditStep)"
+              title="Return to the character builder to make changes"
+            >
+              ✎ Edit Character
+            </button>
+          </div>
           <!-- ── Sheet Header ── -->
           <div class="sheet-header">
             <div>
@@ -7590,13 +7622,16 @@
       const ch = loadCharState();
 
       // Persist state to localStorage on every change
+      let hasUnsavedChanges = false;
       function persistState() {
+        hasUnsavedChanges = true;
         try {
           localStorage.setItem(CH_STORAGE_KEY, JSON.stringify(ch));
         } catch (e) {}
       }
 
       let currentStep = 0;
+      let lastEditStep = 0; // remembers which builder step to return to from the sheet
       let scoreMethod = "pointbuy";
       let pbSpend = { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 };
       let standardArrayValues = [15, 14, 13, 12, 10, 8];
@@ -7753,15 +7788,6 @@
           }
         }
 
-        // Prefer newer/more complete sources over PHB when names clash.
-        // Lower index = higher priority (wins the dedup).
-        const RACE_PRIORITY = ["XPHB", "MPMM", "XGE", "TCE", "DMG", "PHB"];
-        races.sort((a, b) => {
-          const pa = RACE_PRIORITY.indexOf((a.source || "PHB").toUpperCase());
-          const pb = RACE_PRIORITY.indexOf((b.source || "PHB").toUpperCase());
-          return (pa < 0 ? 99 : pa) - (pb < 0 ? 99 : pb);
-        });
-
         allSubraces = dedup(subraces, (r) =>
           (r.name + "|" + (r.raceName || "")).toLowerCase(),
         );
@@ -7772,9 +7798,14 @@
           allSubraces.length,
           "subraces",
         );
-        return dedup(races, (r) => r.name.toLowerCase()).filter(
-          (r) => r.name && !r.name.toLowerCase().includes("variant"),
-        );
+        // Dedup only exact name+source duplicates (accidental double-loads).
+        // Do NOT collapse different editions of the same-named race here —
+        // the source filter needs every edition's entry available so it
+        // can pick the right one based on what's actually selected.
+        return dedup(
+          races,
+          (r) => r.name.toLowerCase() + "|" + (r.source || "PHB").toUpperCase(),
+        ).filter((r) => r.name && !r.name.toLowerCase().includes("variant"));
       }
 
       async function loadClasses() {
@@ -7891,7 +7922,14 @@
         }
 
         console.info("[CharBuilder] Loaded", bgs.length, "backgrounds");
-        return dedup(bgs, (b) => b.name);
+        // Dedup only exact name+source duplicates (accidental double-loads).
+        // Do NOT collapse different editions of the same-named background
+        // here — the source filter needs every edition's entry available
+        // so it can pick the right one based on what's actually selected.
+        return dedup(
+          bgs,
+          (b) => b.name.toLowerCase() + "|" + (b.source || "PHB").toUpperCase(),
+        );
       }
 
       async function loadSpells() {
@@ -7916,23 +7954,32 @@
           }
         }
 
-        // Single-file fallbacks
+        // Single-file fallbacks — try both editions' core rulebook files,
+        // not just PHB, so an XPHB-only source selection can still load
+        // spells if the index-based path above didn't find anything.
         if (!spells.length) {
           for (const f of [
             "spells.json",
             "spell/spells-phb.json",
             "spells/spells-phb.json",
+            "spell/spells-xphb.json",
+            "spells/spells-xphb.json",
           ]) {
             const d = await fetchJSON(base + f);
             if (d && d.spell) {
               spells.push(...d.spell);
-              break;
             }
           }
         }
 
         console.info("[CharBuilder] Loaded", spells.length, "spells");
-        return dedup(spells, (s) => s.name);
+        // Dedup only exact name+source duplicates — keep every edition's
+        // entry available (same reasoning as races/backgrounds) so a
+        // reprinted spell doesn't silently disappear for one edition.
+        return dedup(
+          spells,
+          (s) => s.name.toLowerCase() + "|" + (s.source || "PHB").toUpperCase(),
+        );
       }
 
       async function loadItems() {
@@ -7989,10 +8036,13 @@
 
       // 2024 ↔ 2014 edition pairs: selecting one implicitly allows the other
       // because 5etools still tags many 2024-revised entries with the 2014 source code.
+      // One-directional only: selecting the 2024 book also allows entries
+      // still mislabeled with the 2014 source code in the data. We do NOT
+      // go the other way — selecting only the 2014 book should not pull in
+      // genuinely-tagged 2024 content, or the source checkboxes would have
+      // no effect for players trying to use one edition exclusively.
       const _EDITION_PAIRS = {
-        XPHB: "PHB",
         PHB: "XPHB",
-        XDMG: "DMG",
         DMG: "XDMG",
       };
 
@@ -8056,6 +8106,7 @@
    STEP NAVIGATION
    ═══════════════════════════════════════════════════════════ */
       function gotoStep(n) {
+        if (n === 9 && currentStep !== 9) lastEditStep = currentStep;
         currentStep = n;
 
         // Step 7 = Character Sheet view — handled separately
@@ -10939,6 +10990,24 @@
           return false;
         });
 
+        // Fallback for schema variants Formats 1–4 don't recognize (e.g. a
+        // 2024/XPHB dataset that structures class-spell association
+        // differently than the legacy formats above). Rather than silently
+        // returning zero spells, do a loose match anywhere inside the
+        // spell's classes data before giving up.
+        if (!filteredSpells.length) {
+          filteredSpells = allSpells.filter((s) => {
+            if (!s.classes) return false;
+            try {
+              return JSON.stringify(s.classes)
+                .toLowerCase()
+                .includes(className);
+            } catch (e) {
+              return false;
+            }
+          });
+        }
+
         // If no class-specific spells found, show a clear notice rather than dumping all spells
         const noMatchEl = document.getElementById("noSpellsNotice");
         if (!filteredSpells.length) {
@@ -11942,8 +12011,11 @@
           if (kit.gold && kit.gold > 0) {
             ch.currency = ch.currency || { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 };
             ch.currency.gp = (ch.currency.gp || 0) + kit.gold;
+            ch.gold = ch.currency.gp;
             const gpEl = document.getElementById("currGP");
             if (gpEl) gpEl.value = ch.currency.gp;
+            const startGoldEl = document.getElementById("startGold");
+            if (startGoldEl) startGoldEl.value = ch.currency.gp;
           }
         }
         const bgExtras = _getActiveBgExtras();
@@ -12284,6 +12356,65 @@
       /* ═══════════════════════════════════════════════════════════
    SHEET TABS
    ═══════════════════════════════════════════════════════════ */
+      /* ═══════════════════════════════════════════════════════════
+   AUTO-SCALE CHARACTER SHEET TO FIT THE WINDOW
+   ═══════════════════════════════════════════════════════════ */
+      let _autoScaleRaf = null;
+      function autoScaleSheet() {
+        const wrap = document.getElementById("sheet");
+        const card = document.getElementById("sheetCard");
+        if (!wrap || !card || !wrap.classList.contains("visible")) return;
+
+        // Reset before measuring so we get the sheet's true natural size,
+        // not a size already squashed by a previous scale pass.
+        card.style.transform = "none";
+        wrap.style.height = "";
+
+        const available = wrap.clientWidth;
+        const naturalWidth = card.scrollWidth;
+        const naturalHeight = card.scrollHeight;
+        if (!available || !naturalWidth) return;
+
+        // Only ever shrink to fit — never scale up past 1, so text stays
+        // crisp at normal/large window sizes and this only kicks in when
+        // something (a wide grid or table) would otherwise overflow or
+        // force a horizontal scrollbar on a narrower window.
+        let scale = Math.min(1, available / naturalWidth);
+        // Don't shrink below readability; below this the person is better
+        // served by the browser's own pinch/ctrl+scroll zoom.
+        scale = Math.max(scale, 0.5);
+
+        if (scale < 0.999) {
+          card.style.transform = `scale(${scale})`;
+          wrap.style.height = naturalHeight * scale + "px";
+        }
+      }
+
+      function scheduleAutoScaleSheet() {
+        if (_autoScaleRaf) cancelAnimationFrame(_autoScaleRaf);
+        _autoScaleRaf = requestAnimationFrame(() => {
+          _autoScaleRaf = null;
+          autoScaleSheet();
+        });
+      }
+
+      window.addEventListener("resize", scheduleAutoScaleSheet);
+
+      // Warn before closing/navigating away if there's an in-progress
+      // character with changes that haven't been exported to a file yet.
+      // (Auto-save to this browser's local storage happens continuously
+      // via persistState(), but that storage is tied to this one browser/
+      // device and can be cleared — exporting a JSON file via
+      // "Save Character" is the only durable, portable backup.)
+      window.addEventListener("beforeunload", function (e) {
+        const hasContent = !!(ch && (ch.name || ch.race || ch.class));
+        if (hasUnsavedChanges && hasContent) {
+          e.preventDefault();
+          e.returnValue = "";
+          return "";
+        }
+      });
+
       function switchTab(tabName) {
         document.querySelectorAll(".sheet-tab").forEach((t, i) => {
           const tabs = [
@@ -12302,6 +12433,7 @@
         const panel = document.getElementById("tab-" + tabName);
         if (panel) panel.classList.add("active");
         if (tabName === "spells") renderConcBanner();
+        scheduleAutoScaleSheet();
       }
 
       /* ═══════════════════════════════════════════════════════════
@@ -13260,7 +13392,12 @@
 
         // Inventory tab
         renderSheetEquipment(scores);
-        document.getElementById("sheetGold").textContent = ch.gold;
+        ch.currency = ch.currency || { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 };
+        // ch.currency.gp is authoritative (fed by starter kits and the
+        // currency grid below); fall back to the legacy ch.gold field
+        // for characters saved before this field was unified.
+        if (!ch.currency.gp && ch.gold) ch.currency.gp = ch.gold;
+        document.getElementById("sheetGold").textContent = ch.currency.gp || 0;
         renderCurrency();
 
         // Features tab
@@ -13310,6 +13447,7 @@
             "dark",
         );
         renderInspiration();
+        scheduleAutoScaleSheet();
       }
 
       /* ── Spells tab renderer ── */
@@ -16533,6 +16671,7 @@
         a.click();
         URL.revokeObjectURL(url);
         showToast("✓ JSON file downloaded");
+        hasUnsavedChanges = false;
       }
 
       function loadCharacter() {
@@ -16548,6 +16687,7 @@
             const data = JSON.parse(e.target.result);
             Object.assign(ch, data);
             persistState();
+            hasUnsavedChanges = false; // freshly loaded from a file — nothing new to save yet
             restoreFormValues();
             showToast("✓ Character imported from file");
             gotoStep(9);
@@ -16625,13 +16765,19 @@
           bonds: "bonds",
           flaws: "flaws",
           alignment: "alignment",
-          startGold: "gold",
         };
         Object.entries(map).forEach(([elId, key]) => {
           const el = document.getElementById(elId);
           if (el && ch[key] !== undefined && ch[key] !== null && ch[key] !== "")
             el.value = ch[key];
         });
+        // startGold mirrors ch.currency.gp (the authoritative wallet value),
+        // falling back to the legacy ch.gold field for older saves.
+        const startGoldEl = document.getElementById("startGold");
+        if (startGoldEl) {
+          const gp = (ch.currency && ch.currency.gp) || ch.gold || 0;
+          startGoldEl.value = gp;
+        }
       }
 
       /* ═══════════════════════════════════════════════════════════
@@ -17280,26 +17426,68 @@
    ═══════════════════════════════════════════════════════════ */
 
       /* ── Inventory item detail (sheet Inventory tab) ── */
+      // Loosely normalize an item name for matching: lowercase, trim,
+      // strip a leading article, and drop trailing parenthetical notes
+      // (kit/starting-equipment text often reads "a component pouch" or
+      // "rope, hempen (50 ft.)" rather than the catalog's exact name).
+      function _normalizeItemName(name) {
+        return (name || "")
+          .toLowerCase()
+          .replace(/\s*\([^)]*\)\s*$/, "")
+          .replace(/^(a|an|the)\s+/, "")
+          .trim();
+      }
+
+      function findItemLenient(name) {
+        if (!allItems || !allItems.length) return null;
+        let item = allItems.find((i) => i.name === name);
+        if (item) return item;
+        const norm = _normalizeItemName(name);
+        item = allItems.find((i) => _normalizeItemName(i.name) === norm);
+        if (item) return item;
+        // Last resort: does the catalog name appear inside the stored name,
+        // or vice versa (handles "Rope, Hempen (50 feet)" style entries).
+        return (
+          allItems.find(
+            (i) =>
+              norm.includes(_normalizeItemName(i.name)) ||
+              _normalizeItemName(i.name).includes(norm),
+          ) || null
+        );
+      }
+
       async function showInventoryDetail(name) {
         // Lazy-load items if needed
         if (!allItems || !allItems.length) {
           showToast("Loading item data…");
           allItems = await loadItems();
         }
-        const item = allItems.find((i) => i.name === name);
+        const item = findItemLenient(name);
+        const modal = document.getElementById("sheetSpellModal");
+        const modalContent = document.getElementById("sheetSpellModalContent");
         if (!item) {
           showToast(
             'No data found for "' + name + '" — it may be a custom item.',
             false,
           );
+          // Still open the modal with a clear message so the button never
+          // appears to do nothing.
+          if (modal && modalContent) {
+            modalContent.innerHTML =
+              '<div style="font-family:Cinzel,serif;font-size:0.88rem;font-weight:700;color:var(--gold2);margin-bottom:0.5rem">' +
+              escHtml(name) +
+              "</div>" +
+              '<div style="font-size:0.74rem;color:var(--text-muted);font-style:italic">' +
+              "No catalog data found for this item — it may be custom or use non-standard wording. Try renaming it to match the official item name for full details." +
+              "</div>";
+            modal.classList.add("open");
+          }
           return;
         }
         // Build detail content using showEquipDetail which populates equipDetailContent
-        showEquipDetail(name);
+        showEquipDetail(item.name);
         // On the sheet the builder panel is hidden, so mirror into the spell modal
         const content = document.getElementById("equipDetailContent");
-        const modal = document.getElementById("sheetSpellModal");
-        const modalContent = document.getElementById("sheetSpellModalContent");
         if (modal && modalContent && content && content.innerHTML) {
           modalContent.innerHTML = content.innerHTML;
           modal.classList.add("open");
@@ -18564,6 +18752,8 @@
         ch.background = background;
         ch.baseScores = baseScores;
         ch.gold = 50 + Math.floor(Math.random() * 100);
+        ch.currency = ch.currency || { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 };
+        ch.currency.gp = ch.gold;
         const _doEquip =
           !document.getElementById("rng_equip") ||
           document.getElementById("rng_equip").checked;
