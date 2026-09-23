@@ -7932,6 +7932,16 @@
         );
       }
 
+      let spellClassSources = null;
+      async function loadSpellClassSources() {
+        const base = await getDataRoot();
+        for (const dir of ["spell", "spells"]) {
+          const d = await fetchJSON(base + `${dir}/sources.json`);
+          if (d) return d;
+        }
+        return {};
+      }
+
       async function loadSpells() {
         const base = await getDataRoot();
         let spells = [];
@@ -10943,10 +10953,41 @@
             '<div class="loading">Loading spells…</div>';
           allSpells = await loadSpells();
         }
+        // spells/sources.json is the authoritative class↔spell lookup for
+        // 2024 (XPHB) content — XPHB-sourced spell entries carry no inline
+        // "classes" field at all (confirmed against the actual 5etools
+        // data), so the class list has to be cross-referenced from here
+        // rather than read off the spell object itself.
+        if (spellClassSources === null) {
+          spellClassSources = await loadSpellClassSources();
+        }
 
         // Filter to class spells using multiple 5etools formats
         const className = ch.class.name.toLowerCase();
         filteredSpells = allSpells.filter((s) => {
+          // Primary: spells/sources.json cross-reference, keyed by the
+          // spell's own source book, then its name.
+          const srcLookup =
+            spellClassSources &&
+            spellClassSources[(s.source || "PHB").toUpperCase()] &&
+            spellClassSources[(s.source || "PHB").toUpperCase()][s.name];
+          if (srcLookup) {
+            const classList = srcLookup.class || [];
+            const subclassList = srcLookup.subclass || [];
+            if (
+              classList.some((c) => (c.name || "").toLowerCase() === className)
+            )
+              return true;
+            if (
+              subclassList.some(
+                (sc) =>
+                  ((sc.class && sc.class.name) || "").toLowerCase() ===
+                  className,
+              )
+            )
+              return true;
+          }
+
           if (!s.classes) return false;
           const cls = s.classes;
 
